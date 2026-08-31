@@ -44,6 +44,84 @@ function toLocalDateTimeInput(value){
 }
 function setup(){const p=state.profile,selected=p.country||countryFromCurrency(p.currency),info=countryInfo(selected);return shell(`<section class="screen full">${top('YOUR QUIT PLAN')}<h1>MAKE IT<br>YOURS.</h1><p class="muted">These details power your live Reclaim calculations.</p><form id="setup-form" class="stack"><label>Your quit date and time<input class="field" name="quitAt" type="datetime-local" required value="${toLocalDateTimeInput(p.quitAt)}"></label><label>Country<select class="field" name="country" required>${countryOptions(selected)}</select><small class="currency-preview" id="currency-preview">Currency: ${info[2]} (${currencySymbol(selected)})</small></label><label>Cigarettes per day<input class="field" name="cigarettesPerDay" type="number" min="1" max="100" required value="${p.cigarettesPerDay}"></label><label>Price per pack<input class="field" name="pricePerPack" type="number" min="0" step="0.01" required value="${p.pricePerPack}"></label><label>Cigarettes per pack<input class="field" name="cigarettesPerPack" type="number" min="1" required value="${p.cigarettesPerPack}"></label><div class="spacer"></div><button class="primary">SAVE & CONTINUE</button></form></section>`,false)}
 function mood(){return shell(`<section class="screen full"><div class="brand">RECLAIM</div><h1>HOW ARE<br>YOU TODAY?</h1><p class="muted">Your journey matters.<br>Let's keep going.</p><div class="stack" style="margin-top:25px">${[['great','🙂','I’m feeling great','Let’s keep the streak alive!'],['okay','😐','I’m okay','Getting there.'],['struggling','☹','I’m struggling','Need some support.'],['craving','✹','I’m having strong cravings','Help me get through this!']].map(x=>`<button class="card mood" data-mood="${x[0]}"><span class="mood-icon">${x[1]}</span><span><strong>${x[2]}</strong><small>${x[3]}</small></span></button>`).join('')}</div><div class="spacer"></div><p class="muted small" style="text-align:center">You're not alone. We’ve got you.</p></section>`,false)}
+function strugglingSupport(){
+  const m = metrics();
+  const t = elapsedParts(m.ms);
+
+  const smokeFreeTime =
+    t.days > 0
+      ? `${t.days} DAY${t.days === 1 ? '' : 'S'}`
+      : t.hours > 0
+        ? `${t.hours} HOUR${t.hours === 1 ? '' : 'S'}`
+        : `${Math.max(1,t.minutes)} MIN`;
+
+  return shell(`
+    <section class="screen full">
+      ${top('RECLAIM', true)}
+
+      <div style="margin-top:30px">
+        <p class="muted small">RIGHT NOW</p>
+
+        <h1>TODAY<br>FEELS HARD.</h1>
+
+        <p class="muted">
+          You don't have to fix the whole day.<br>
+          Look at what you've already reclaimed.
+        </p>
+      </div>
+
+      <div class="stack" style="margin-top:28px">
+
+        <div class="card" style="text-align:center">
+          <strong style="font-size:32px">${Math.floor(m.avoided)}</strong>
+          <small style="display:block">CIGARETTES AVOIDED</small>
+        </div>
+
+        <div class="card" style="text-align:center">
+          <strong style="font-size:32px">${money(m.saved)}</strong>
+          <small style="display:block">MONEY RECLAIMED</small>
+        </div>
+
+        <div class="card" style="text-align:center">
+          <strong style="font-size:32px">${smokeFreeTime}</strong>
+          <small style="display:block">SMOKE-FREE</small>
+        </div>
+
+      </div>
+
+      <h2 style="margin-top:36px">WHAT WOULD<br>HELP RIGHT NOW?</h2>
+
+      <div class="stack" style="margin-top:18px">
+
+        <button class="card" data-support="reset">
+          <strong>60-SECOND RESET</strong>
+          <small style="display:block">Clear my head</small>
+        </button>
+
+        <button class="card" data-support="circle">
+          <strong>MY CIRCLE</strong>
+          <small style="display:block">Talk to people who get it</small>
+        </button>
+
+        <button class="card" data-support="craving">
+          <strong>CRAVING HELP</strong>
+          <small style="display:block">I think I might smoke</small>
+        </button>
+
+      </div>
+
+      <button
+        class="secondary"
+        data-support="dashboard"
+        style="margin-top:20px;width:100%"
+      >
+        TAKE ME TO MY DASHBOARD
+      </button>
+
+      <div style="height:30px"></div>
+    </section>
+  `, false);
+}
 function elapsedParts(ms){const total=Math.max(0,Math.floor(ms/1000));return {days:Math.floor(total/86400),hours:Math.floor(total%86400/3600),minutes:Math.floor(total%3600/60),seconds:total%60}}
 function elapsedMarkup(ms){const t=elapsedParts(ms);return `<span><b>${t.days}</b><small>days</small></span><span><b>${String(t.hours).padStart(2,'0')}</b><small>hours</small></span><span><b>${String(t.minutes).padStart(2,'0')}</b><small>minutes</small></span><span><b>${String(t.seconds).padStart(2,'0')}</b><small>seconds</small></span>`}
 function homeClockMarkup(ms){const t=elapsedParts(ms);return `<span>${String(t.hours).padStart(2,'0')} HOURS</span><i>·</i><span>${String(t.minutes).padStart(2,'0')} MIN</span><i>·</i><span>${String(t.seconds).padStart(2,'0')} SEC</span>`}
@@ -81,7 +159,9 @@ function savingsDayStats(date){const p=state.profile,start=new Date(date.getFull
 function savingsCalendar(){const now=new Date(),currentMonth=localDateKey(new Date(now.getFullYear(),now.getMonth(),1)).slice(0,7),cursor=/^\d{4}-\d{2}$/.test(state.calendarMonth||'')?state.calendarMonth:currentMonth,[year,monthNumber]=cursor.split('-').map(Number),month=monthNumber-1,days=new Date(year,month+1,0).getDate(),start=(new Date(year,month,1).getDay()+6)%7,cells=[],monthStats={saved:0,avoided:0,funded:0};let selectedKey=state.selectedSavingsDay;if(!selectedKey||!selectedKey.startsWith(`${cursor}-`)){selectedKey=cursor===currentMonth?localDateKey(now):`${cursor}-01`}for(let i=0;i<start;i++)cells.push('<span class="calendar-blank" aria-hidden="true"></span>');for(let day=1;day<=days;day++){const date=new Date(year,month,day),key=localDateKey(date),stats=savingsDayStats(date),isToday=key===localDateKey(now),isSelected=key===selectedKey;if(!stats.isFuture){monthStats.saved+=stats.saved;monthStats.avoided+=stats.avoided;if(stats.fraction>0)monthStats.funded++}const classes=[stats.fraction>0&&!stats.isFuture?'funded':'',stats.isFuture?'future':'',stats.isBefore?'before':'',isToday?'today':'',isSelected?'selected':''].filter(Boolean).join(' ');cells.push(`<button class="${classes}" data-calendar-day="${key}" aria-label="View savings for ${new Intl.DateTimeFormat(undefined,{dateStyle:'long'}).format(date)}" aria-pressed="${isSelected}"><span>${day}</span>${stats.fraction>0?'<i></i>':''}</button>`)}const selectedDate=dateFromKey(selectedKey),selected=savingsDayStats(selectedDate),selectedLabel=new Intl.DateTimeFormat(undefined,{weekday:'long',month:'long',day:'numeric'}).format(selectedDate),detail=selected.isBefore?`<p>Your quit journey had not started yet on this date.</p>`:`<div class="calendar-detail-stats"><span><small>${selected.isFuture?'PROJECTED SAVINGS':'MONEY RECLAIMED'}</small><strong>${money(selected.saved)}</strong></span><span><small>${selected.isFuture?'PROJECTED AVOIDED':'CIGARETTES AVOIDED'}</small><strong>${selected.avoided<10?selected.avoided.toFixed(1):Math.floor(selected.avoided).toLocaleString()}</strong></span></div><p>${selected.isFuture?'A full smoke-free day based on your current quit-plan baseline.':'Calculated from the smoke-free portion of this day.'}</p>`;return `<section class="calendar" aria-label="Savings calendar"><header class="calendar-heading"><div><div class="eyebrow">Savings explorer</div><strong>${new Intl.DateTimeFormat(undefined,{month:'long',year:'numeric'}).format(new Date(year,month,1))}</strong></div><div class="calendar-controls"><button data-calendar-shift="-1" aria-label="Previous month">‹</button><button data-calendar-shift="1" aria-label="Next month">›</button></div></header><div class="calendar-summary"><span><small>RECLAIMED THIS MONTH</small><strong>${money(monthStats.saved)}</strong></span><span><small>CIGARETTES AVOIDED</small><strong>${Math.floor(monthStats.avoided).toLocaleString()}</strong></span><span><small>FUNDED DAYS</small><strong>${monthStats.funded}</strong></span></div><div class="weekdays">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<small>${x}</small>`).join('')}</div><div class="calendar-grid">${cells.join('')}</div>${cursor!==currentMonth?'<button class="calendar-today-link" data-calendar-today>JUMP TO THIS MONTH</button>':''}<article class="calendar-detail"><header><span class="calendar-detail-icon">${selected.isFuture?'↗':selected.isBefore?'○':'✓'}</span><div><small>${selected.isFuture?'FUTURE PROJECTION':selected.isBefore?'BEFORE YOUR QUIT DATE':'DAILY CONTRIBUTION'}</small><strong>${selectedLabel}</strong></div></header>${detail}</article><div class="calendar-legend"><span><i class="funded"></i>Funded</span><span><i class="future"></i>Projected</span><span><i class="selected"></i>Selected</span></div></section>`}
 function dreams(){const m=metrics(),daily=state.profile.cigarettesPerDay*(state.profile.pricePerPack/state.profile.cigarettesPerPack),lastMood=state.checkins.at(-1)?.mood,goals=state.goals||[];return shell(`<section class="screen dream-screen">${top('SAVINGS GOAL TRACKER')}<p class="dream-status">${lastMood==='craving'?'I’m feeling a craving — remember what you’re reclaiming.':'Every smoke-free day funds something real.'}</p><div class="stack">${goals.length?goals.map((g,index)=>{const pct=Math.min(100,m.saved/g.target*100),remaining=Math.max(0,g.target-m.saved),days=daily>0?Math.ceil(remaining/daily):0;return `<article class="card goal-card"><header><div class="goal-icon">${goalIcon(g.name)}</div><div><h2>${esc(g.name)}</h2><span>${money(m.saved)} saved automatically</span></div><button class="goal-delete" data-delete-goal="${esc(g.id)}" aria-label="Delete ${esc(g.name)} goal">DELETE</button></header><div class="progress goal-progress"><span style="width:${pct}%"></span></div><div class="goal-meta"><span><small>PROGRESS</small><strong>${pct.toFixed(0)}%</strong></span><span><small>TARGET</small><strong>${money(g.target)}</strong></span></div><div class="goal-eta">${remaining?`About ${days.toLocaleString()} smoke-free days to go at your current baseline.`:'Goal fully funded — you made this happen.'}</div></article>${index===0?`<article class="card peer-advice"><div class="eyebrow">Peer advice</div><strong>Make the reward visible.</strong><p>Keep a picture of your goal nearby when a craving arrives. You are not giving something up—you are funding something better.</p></article>`:''}`}).join(''):`<article class="card empty-goals"><div class="goal-icon dream-goal-icon">${appIcon('my_location')}</div><h2>CHOOSE YOUR NEXT DREAM</h2><p>Your smoke-free savings will fund it automatically.</p></article>`}${savingsCalendar()}<button class="secondary" data-add-goal>+ ADD A SAVINGS GOAL</button></div></section>`)}
 function more(){return shell(`<section class="screen">${top('MORE')}<h1>YOUR<br>RECLAIM.</h1><div class="stack"><div class="card"><div class="eyebrow">Cloud account</div><strong>${session?'Connected to Supabase':'Not signed in'}</strong></div><button class="card mood" data-view="circles"><span class="mood-icon">◎</span><span><strong>Community Circles</strong><small>People near your stage</small></span></button><button class="card mood" data-view="insights"><span class="mood-icon">⌁</span><span><strong>Insights</strong><small>Review savings, cigarettes avoided and time reclaimed</small></span></button><button class="card mood" data-edit-profile><span class="mood-icon">⚙</span><span><strong>Quit plan & calculations</strong><small>Edit your inputs and country</small></span></button>${session?'<button class="secondary" data-signout>SIGN OUT</button>':''}</div><p class="source" style="margin-top:24px">Reclaim supports behavior change but does not diagnose, treat, or replace professional medical care. If you feel unwell or need quitting support, contact a qualified clinician or local stop-smoking service.</p></section>`)}
-function render(){let out;if(state.stage==='intro'||new URLSearchParams(location.search).has('intro-preview'))out=intro();else if(state.stage==='auth')out=auth();else if(state.stage==='setup')out=setup();else if(state.stage==='mood')out=mood();else out=({home,health,momentum,insights,craving,circles,dreams,more}[state.view]||home)();$('#app').innerHTML=out;bind();startClock()}
+function render(){let out;if(state.stage==='intro'||new URLSearchParams(location.search).has('intro-preview'))out=intro();else if(state.stage==='auth')out=auth();else if(state.stage==='setup')out=setup();else if(state.stage==='mood')out=mood();
+else if(state.stage==='support')out=strugglingSupport();
+else out=({home,health,momentum,insights,craving,circles,dreams,more}[state.view]||home)();$('#app').innerHTML=out;bind();startClock()}
 let clockTimer;
 function startClock(){clearInterval(clockTimer);const clock=$('#smoke-free-clock'),days=$('#smoke-free-days'),progress=$('#health-progress'),progressLabel=$('#health-progress-label');if(!clock&&!progress)return;const tick=()=>{const ms=metrics().ms;if(clock)clock.innerHTML=homeClockMarkup(ms);if(days)days.textContent=elapsedParts(ms).days;if(progress){const items=state.remoteMilestones?.length?state.remoteMilestones.map(x=>({h:x.minutes_after_quitting/60,time:x.title})):milestones,p=healthProgress(ms,items);progress.style.width=`${p.percent}%`;if(progressLabel)progressLabel.textContent=`${p.percent.toFixed(2)}% of this interval`}};tick();clockTimer=setInterval(tick,1000)}
 async function authenticate(form){   const d = Object.fromEntries(new FormData(form));   const signup = state.authMode === 'signup';    const email = String(d.email || '').trim().toLowerCase();   const password = String(d.password || '');   const name = String(d.name || '').trim();    // Require a normal-looking email such as name@example.com.   // Rejects values such as xyz@xyz.  
@@ -118,7 +198,37 @@ function bind(){
   $('[data-google]')?.addEventListener('click',()=>{location.href=`${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(location.origin+location.pathname)}`});
   $('[name="country"]')?.addEventListener('change',e=>{const info=countryInfo(e.target.value);$('#currency-preview').textContent=`Currency: ${info[2]} (${currencySymbol(e.target.value)})`});
   $('#setup-form')?.addEventListener('submit',async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target)),country=d.country||'IN';state.profile={...state.profile,...d,country,currency:currencySymbol(country),currencyCode:countryInfo(country)[2],cigarettesPerDay:+d.cigarettesPerDay,pricePerPack:+d.pricePerPack,cigarettesPerPack:+d.cigarettesPerPack};state.communityStageTouched=false;try{const synced=await persistProfile();state.stage='mood';save();render();if(!synced)toast('Saved here. Run the database upgrade to sync every new field.')}catch(err){toast(err.message)}});
-  document.querySelectorAll('[data-mood]').forEach(el=>el.onclick=()=>{state.checkins.push({mood:el.dataset.mood,at:new Date().toISOString()});state.stage='app';state.view=el.dataset.mood==='craving'?'craving':'home';save();render()});
+  document.querySelectorAll('[data-mood]').forEach(el=>el.onclick=()=>{   const mood = el.dataset.mood;    state.checkins.push({     mood,     at:new Date().toISOString()   });    if(mood === 'struggling'){     state.stage = 'support';   } else if(mood === 'craving'){     state.stage = 'app';     state.view = 'craving';   } else {     state.stage = 'app';     state.view = 'home';   }    save();   render(); });
+  document.querySelectorAll('[data-support]').forEach(el=>el.onclick=()=>{
+  const action = el.dataset.support;
+
+  if(action === 'reset'){
+    state.stage = 'app';
+    state.view = 'craving';
+    save();
+    render();
+    openTool('breathe');
+    return;
+  }
+
+  if(action === 'circle'){
+    state.stage = 'app';
+    state.view = 'circles';
+  }
+
+  if(action === 'craving'){
+    state.stage = 'app';
+    state.view = 'craving';
+  }
+
+  if(action === 'dashboard'){
+    state.stage = 'app';
+    state.view = 'home';
+  }
+
+  save();
+  render();
+});
   document.querySelectorAll('[data-tool]').forEach(el=>el.onclick=()=>openTool(el.dataset.tool));
   $('[data-edit-profile]')?.addEventListener('click',()=>{state.stage='setup';render()});
   $('[data-add-goal]')?.addEventListener('click',openGoal);
