@@ -242,3 +242,49 @@
 .craving-support .craving-log-button:active {
   opacity: 1;
 }
+
+.craving-feedback {
+  padding-top: 8px;
+}
+
+.craving-feedback h2 {
+  margin-top: 10px;
+}
+
+.feedback-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.feedback-options .secondary {
+  height: 48px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.feedback-skip {
+  display: block;
+  margin: 18px auto 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.tool-card.recommended {
+  border-color: #65d6a080;
+  box-shadow: inset 0 0 0 1px #65d6a018;
+}
+
+.tool-recommendation {
+  margin-bottom: 10px;
+  color: #65d6a0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+}
