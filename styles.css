@@ -124,3 +124,121 @@
 .struggling-support [data-support="dashboard"]::after {
   display: none;
 }
+
+/* ─────────────────────────────────────
+   CRAVING SUPPORT
+   ───────────────────────────────────── */
+
+.craving-support {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(108, 63, 255, 0.18), transparent 28%),
+    #050505;
+}
+
+.craving-support h1 {
+  margin-top: 28px;
+  line-height: 0.88;
+  text-shadow: 0 0 34px rgba(108, 63, 255, 0.16);
+}
+
+.craving-support h1::after {
+  content: "";
+  display: block;
+  width: 54px;
+  height: 4px;
+  margin-top: 18px;
+  border-radius: 99px;
+  background: #6c3fff;
+  box-shadow: 0 0 16px rgba(108, 63, 255, 0.55);
+}
+
+/* Toolkit cards */
+
+.craving-support .tool-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(16,16,18,0.92);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.craving-support .tool-card:active {
+  transform: scale(0.985);
+}
+
+/* Main intervention: Box Breathing */
+
+.craving-support .tool-card[data-tool="breathe"] {
+  border-color: rgba(126,91,255,0.65);
+  background:
+    linear-gradient(115deg, rgba(108,63,255,0.32), rgba(18,15,28,0.96));
+  box-shadow: 0 10px 34px rgba(108,63,255,0.12);
+}
+
+.craving-support .tool-card[data-tool="breathe"] strong {
+  color: #fff;
+}
+
+.craving-support .tool-card[data-tool="breathe"] header span {
+  color: #a78bfa;
+}
+
+/* Ride the Wave */
+
+.craving-support .tool-card[data-tool="timer"] {
+  border-color: rgba(126,91,255,0.30);
+  background:
+    linear-gradient(115deg, rgba(108,63,255,0.13), rgba(16,16,18,0.96));
+}
+
+.craving-support .tool-card[data-tool="timer"] header span {
+  color: #9b82ff;
+}
+
+/* Water + walk stay calmer */
+
+.craving-support .tool-card[data-tool="water"],
+.craving-support .tool-card[data-tool="walk"] {
+  background:
+    linear-gradient(110deg, rgba(255,255,255,0.045), rgba(10,10,11,0.96));
+}
+
+/* Small purple activity marker */
+
+.craving-support .tool-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18%;
+  width: 3px;
+  height: 64%;
+  border-radius: 0 99px 99px 0;
+  background: rgba(126,91,255,0.45);
+}
+
+.craving-support .tool-card[data-tool="breathe"]::before {
+  background: #7957ff;
+  box-shadow: 0 0 12px rgba(121,87,255,0.75);
+}
+
+/* Fix separation below Take a Short Walk */
+
+.craving-support .craving-log-button {
+  width: 100%;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  border-color: rgba(255,255,255,0.12);
+  opacity: 0.72;
+}
+
+/* Make the secondary logging action quieter */
+
+.craving-support .craving-log-button:hover,
+.craving-support .craving-log-button:active {
+  opacity: 1;
+}
