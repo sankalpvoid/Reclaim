@@ -5,8 +5,10 @@ let cachedName='';
 
 function read(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function cleanFirst(raw=''){return String(raw).trim().split(/\s+/)[0]||''}
+function localState(){return read(STORAGE)||{}}
+function latestMood(){const state=localState(),items=Array.isArray(state.checkins)?state.checkins:[];return items.at(-1)?.mood||''}
 function localName(){
-  const state=read(STORAGE)||{}, session=read(SESSION)||{}, meta=session?.user?.user_metadata||{};
+  const state=localState(), session=read(SESSION)||{}, meta=session?.user?.user_metadata||{};
   const emailName=String(session?.user?.email||'').split('@')[0].replace(/[._-]+/g,' ').trim();
   return cleanFirst(state?.profile?.name||meta.display_name||meta.full_name||meta.name||emailName||'');
 }
@@ -39,11 +41,19 @@ function addHomeName(name){
   const hero=document.querySelector('.home-screen .home-hero-copy');if(!hero)return;
   let el=hero.querySelector('.name-greeting');if(!el){el=document.createElement('div');el.className='name-greeting';hero.prepend(el)}
   el.textContent=`${greeting()}, ${name.toUpperCase()}.`;
+  const message=document.querySelector('.home-screen .hero-message');if(!message)return;
+  const mood=latestMood();
+  if(mood==='great')message.textContent=`GOOD TO HEAR, ${name.toUpperCase()}. KEEP THE STREAK ALIVE.`;
+  else if(mood==='okay')message.textContent=`ONE STEP AT A TIME, ${name.toUpperCase()}. YOU'RE STILL MOVING FORWARD.`;
 }
 function addSupportName(name){
   const screen=document.querySelector('.struggling-support');if(!screen)return;
   const heading=screen.querySelector('h1');
   if(heading)heading.innerHTML=`TODAY<br>FEELS HARD, ${name.toUpperCase()}.`;
+  if(latestMood()==='struggling'){
+    const copy=screen.querySelector('h1 + p.muted');
+    if(copy)copy.innerHTML=`${name}, you only need to get through this moment.<br>Look at what you've already reclaimed.`;
+  }
 }
 function apply(name){if(!name)return;addMoodName(name);addHomeName(name);addSupportName(name)}
 async function personalize(){
