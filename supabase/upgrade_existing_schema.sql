@@ -10,6 +10,7 @@ alter table public.smoking_events add column if not exists event_type text not n
 alter table public.smoking_events add column if not exists resisted boolean;
 alter table public.smoking_events add column if not exists toolkit text;
 alter table public.smoking_events add column if not exists duration_seconds integer check (duration_seconds >= 0);
+alter table public.smoking_events add column if not exists tool_feedback text check (tool_feedback in ('yes','a_little','not_really'));
 
 -- Reclaim Circles: additive shared community feed.
 create table if not exists public.circles (
@@ -54,6 +55,7 @@ alter table public.circle_posts enable row level security;
 alter table public.post_cheers enable row level security;
 grant select, insert, update on table public.profiles to authenticated;
 grant select, insert, update, delete on table public.savings_goals to authenticated;
+grant select, insert, update on table public.smoking_events to authenticated;
 grant select on table public.circles to authenticated;
 grant select, insert, update, delete on table public.circle_posts to authenticated;
 grant select, insert, delete on table public.post_cheers to authenticated;
