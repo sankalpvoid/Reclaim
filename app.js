@@ -56,7 +56,7 @@ function strugglingSupport(){
         : `${Math.max(1,t.minutes)} MIN`;
 
   return shell(`
-    <section class="screen full">
+    <section class="screen full struggling-support">
       ${top('RECLAIM', true)}
 
       <div style="margin-top:30px">
