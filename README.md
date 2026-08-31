@@ -41,3 +41,4 @@ Use the anon key only in the client. Never place a Supabase service-role key in 
 These values are estimates and deliberately labeled that way. Recovery milestones are not percentages or measurements; copy is sourced from CDC and American Cancer Society public guidance linked inside the Health screen.
 
 Deployment managed through GitHub and Vercel.
+Development preview branch enabled.
