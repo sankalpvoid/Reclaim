@@ -30,9 +30,10 @@ async function resolveName(){
 }
 function greeting(){const h=new Date().getHours();return h<12?'GOOD MORNING':h<17?'GOOD AFTERNOON':'GOOD EVENING'}
 function addMoodName(name){
-  const h1=[...document.querySelectorAll('.screen h1')].find(el=>el.textContent.replace(/\s+/g,' ').trim()==='HOW ARE YOU TODAY?');
-  if(!h1)return;const p=h1.nextElementSibling;
-  if(p?.classList.contains('muted'))p.innerHTML=`${name}, your journey matters.<br>Let's keep going.`;
+  const screen=document.querySelector('#app > .shell .screen.full');if(!screen)return;
+  const h1=screen.querySelector('h1');if(!h1||!h1.textContent.includes('HOW ARE'))return;
+  const p=screen.querySelector('h1 + p.muted');
+  if(p)p.innerHTML=`${name}, your journey matters.<br>Let's keep going.`;
 }
 function addHomeName(name){
   const hero=document.querySelector('.home-screen .home-hero-copy');if(!hero)return;
@@ -41,8 +42,8 @@ function addHomeName(name){
 }
 function addSupportName(name){
   const screen=document.querySelector('.struggling-support');if(!screen)return;
-  const heading=[...screen.querySelectorAll('h1,h2,h3,strong')].find(el=>/TODAY\s+FEELS\s+HARD/i.test(el.textContent.replace(/\s+/g,' ')));
-  if(heading)heading.textContent=`TODAY FEELS HARD, ${name.toUpperCase()}.`;
+  const heading=screen.querySelector('h1');
+  if(heading)heading.innerHTML=`TODAY<br>FEELS HARD, ${name.toUpperCase()}.`;
 }
 function apply(name){if(!name)return;addMoodName(name);addHomeName(name);addSupportName(name)}
 async function personalize(){
@@ -50,9 +51,11 @@ async function personalize(){
   if(cachedName){apply(cachedName);return}
   const resolved=await resolveName();if(resolved){cachedName=resolved;apply(resolved)}
 }
-function schedule(){requestAnimationFrame(()=>requestAnimationFrame(personalize));setTimeout(personalize,300);setTimeout(personalize,1000)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
-document.addEventListener('click',schedule,{passive:true});
-document.addEventListener('submit',schedule,{passive:true});
+function schedule(){requestAnimationFrame(()=>requestAnimationFrame(personalize));setTimeout(personalize,150)}
+function start(){
+  const app=document.querySelector('#app');
+  if(app)new MutationObserver(schedule).observe(app,{childList:true});
+  schedule();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
-setInterval(personalize,1200);
