@@ -193,7 +193,7 @@ function bind(){
   $('[data-log-setback]')?.addEventListener('click',openSetback);
   $('[data-menu]')?.addEventListener('click',openMenu);
   $('[data-notifications]')?.addEventListener('click',()=>toast('You’re all caught up.'));
-  $('[data-back="true"]')?.addEventListener('click',()=>{state.view='home';render()});
+  $('[data-back="true"]')?.addEventListener('click',()=>{   if(state.returnToSupport){     state.returnToSupport = false;     state.stage = 'support';   } else {     state.stage = 'app';     state.view = 'home';   }   save();   render(); });
   $('#auth-form')?.addEventListener('submit',e=>{e.preventDefault();authenticate(e.target)});
   $('[data-google]')?.addEventListener('click',()=>{location.href=`${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(location.origin+location.pathname)}`});
   $('[name="country"]')?.addEventListener('change',e=>{const info=countryInfo(e.target.value);$('#currency-preview').textContent=`Currency: ${info[2]} (${currencySymbol(e.target.value)})`});
@@ -203,23 +203,26 @@ function bind(){
   const action = el.dataset.support;
 
   if(action === 'reset'){
-    state.stage = 'app';
-    state.view = 'craving';
-    save();
-    render();
-    openTool('breathe');
-    return;
-  }
+  state.returnToSupport = true;
+  state.stage = 'app';
+  state.view = 'craving';
+  save();
+  render();
+  openTool('breathe');
+  return;
+}
 
-  if(action === 'circle'){
-    state.stage = 'app';
-    state.view = 'circles';
-  }
+if(action === 'circle'){
+  state.returnToSupport = true;
+  state.stage = 'app';
+  state.view = 'circles';
+}
 
-  if(action === 'craving'){
-    state.stage = 'app';
-    state.view = 'craving';
-  }
+if(action === 'craving'){
+  state.returnToSupport = true;
+  state.stage = 'app';
+  state.view = 'craving';
+}
 
   if(action === 'dashboard'){
     state.stage = 'app';
