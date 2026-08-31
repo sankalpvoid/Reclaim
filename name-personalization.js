@@ -52,7 +52,7 @@ function addSupportName(name){
   if(heading)heading.innerHTML=`TODAY<br>FEELS HARD, ${name.toUpperCase()}.`;
   if(latestMood()==='struggling'){
     const copy=screen.querySelector('h1 + p.muted');
-    if(copy)copy.innerHTML=`${name}, you only need to get through this moment.<br>Look at what you've already reclaimed.`;
+    if(copy)copy.innerHTML=`You only need to get through this moment.<br>Look at what you've already reclaimed.`;
   }
 }
 function apply(name){if(!name)return;addMoodName(name);addHomeName(name);addSupportName(name)}
