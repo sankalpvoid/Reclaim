@@ -1,0 +1,17 @@
+(()=>{
+const STORAGE='reclaim-state-v2';
+function state(){try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch{return {}}}
+function mode(){return state()?.profile?.journeyMode||'quit'}
+function enhance(){const screen=document.querySelector('.craving-support');if(!screen||screen.dataset.journeySupport==='1')return;const m=mode();if(m==='quit')return;screen.dataset.journeySupport='1';const h=screen.querySelector('h1'),p=h?.nextElementSibling;if(m==='reduce'){
+ h.innerHTML='WHAT DO YOU WANT<br>TO DO WITH THIS URGE?';if(p)p.textContent='You do not have to make this perfect. Choose what feels useful right now.';
+ const stack=screen.querySelector('.stack');if(stack)stack.insertAdjacentHTML('beforebegin',`<div class="journey-craving-choices"><button data-journey-craving="ride"><strong>RIDE IT OUT</strong><span>Use a reset and try not smoking this one.</span></button><button data-journey-craving="delay"><strong>DELAY IT</strong><span>Give yourself 10 minutes before deciding.</span></button><button data-journey-craving="smoke"><strong>I’M GOING TO SMOKE</strong><span>Log the cigarette without judgment.</span></button></div>`);
+ }else{
+ h.innerHTML='NOTICE THE<br>CRAVING.';if(p)p.textContent='You are here to understand the pattern, not to pass or fail a test.';
+ const stack=screen.querySelector('.stack');if(stack)stack.insertAdjacentHTML('beforebegin',`<div class="journey-craving-choices track-choice"><button data-journey-craving="observe"><strong>OBSERVE IT FOR A MOMENT</strong><span>Notice what the urge feels connected to.</span></button><button data-journey-craving="smoke"><strong>I’M GOING TO SMOKE</strong><span>Keep the log honest and useful.</span></button></div>`);
+ }
+ const log=screen.querySelector('[data-craving-log]');if(log)log.textContent=m==='reduce'?'LOG THE URGE ONLY':'LOG THIS CRAVING';bindChoices(screen,m);
+}
+function bindChoices(screen,m){screen.querySelectorAll('[data-journey-craving]').forEach(btn=>btn.onclick=()=>{const choice=btn.dataset.journeyCraving;if(choice==='smoke'){screen.querySelector('[data-craving-log]')?.click();setTimeout(()=>document.querySelector('[data-log-cigarette]')?.click(),160);return}if(choice==='delay'){openDelay();return}screen.querySelector('.tool-card')?.scrollIntoView({behavior:'smooth',block:'center'})})}
+function openDelay(){document.querySelector('.journey-delay')?.remove();document.body.insertAdjacentHTML('beforeend',`<div class="journey-delay"><div><div class="eyebrow">DELAY, NOT DENY</div><h2>GIVE IT 10 MINUTES.</h2><p>You can decide again when the timer ends. For now, change rooms, drink water, or simply wait.</p><strong id="journey-delay-clock">10:00</strong><button data-delay-close>I’LL TRY 10 MINUTES</button></div></div>`);let left=600;const el=document.querySelector('#journey-delay-clock'),timer=setInterval(()=>{left--;if(el)el.textContent=`${String(Math.floor(left/60)).padStart(2,'0')}:${String(left%60).padStart(2,'0')}`;if(left<=0)clearInterval(timer)},1000);document.querySelector('[data-delay-close]').onclick=()=>{clearInterval(timer);document.querySelector('.journey-delay')?.remove()}}
+const observer=new MutationObserver(()=>enhance());observer.observe(document.documentElement,{childList:true,subtree:true});enhance();
+})();
