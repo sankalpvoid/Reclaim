@@ -33,7 +33,14 @@ with anonymous_identity as (
     ) as cravings_resisted,
     count(*) filter (where events.event_name = 'support_tool_completed') as support_tools_completed,
     count(*) filter (where events.event_name = 'insights_viewed') as insights_opened,
-    count(*) filter (where events.event_name = 'community_engaged') as community_actions
+    count(*) filter (where events.event_name = 'community_engaged') as community_actions,
+    count(*) filter (where events.event_name = 'checkin_completed') as checkins_completed,
+    count(*) filter (where events.event_name = 'plan_saved') as plan_updates,
+    count(*) filter (where events.event_name = 'dream_goal_created') as dreams_created,
+    count(*) filter (where events.event_name = 'community_story_shared') as stories_shared,
+    count(*) filter (where events.event_name = 'community_reply_shared') as replies_shared,
+    count(*) filter (where events.event_name = 'setback_logged') as setbacks_logged,
+    count(distinct events.properties->>'screen') filter (where events.event_name = 'screen_viewed') as screens_explored
   from identified_events as events
   where events.occurred_at >= now() - interval '30 days'
   group by events.person_key, events.resolved_user_id
@@ -53,8 +60,15 @@ select
   per_person.cravings_logged as "Cravings they logged",
   per_person.cravings_resisted as "Cravings they resisted",
   per_person.support_tools_completed as "Craving tools completed",
+  per_person.checkins_completed as "Check-ins completed",
+  per_person.plan_updates as "Times they updated their plan",
+  per_person.dreams_created as "Dreams created",
   per_person.insights_opened as "Times they opened Insights",
-  per_person.community_actions as "Community actions"
+  per_person.community_actions as "Community actions",
+  per_person.stories_shared as "Stories shared",
+  per_person.replies_shared as "Replies shared",
+  per_person.setbacks_logged as "Setbacks honestly logged",
+  per_person.screens_explored as "Different screens explored"
 from per_person
 left join public.profiles as profile on profile.id = per_person.user_id
 order by per_person.last_seen desc;
