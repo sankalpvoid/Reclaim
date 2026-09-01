@@ -3,10 +3,23 @@
 
 -- Plain-language tester report. Signed-in people appear by their chosen name.
 -- Visitors who never signed in remain anonymous by design.
-with per_person as (
+with anonymous_identity as (
   select
-    events.anonymous_id,
-    max(events.user_id::text)::uuid as user_id,
+    anonymous_id,
+    max(user_id::text)::uuid as user_id
+  from public.analytics_events
+  group by anonymous_id
+), identified_events as (
+  select
+    events.*,
+    identity.user_id as resolved_user_id,
+    coalesce(identity.user_id::text, 'anonymous:' || events.anonymous_id::text) as person_key
+  from public.analytics_events as events
+  join anonymous_identity as identity using (anonymous_id)
+), per_person as (
+  select
+    events.person_key,
+    events.resolved_user_id as user_id,
     min(events.occurred_at) as first_seen,
     max(events.occurred_at) as last_seen,
     count(distinct events.session_id) as sessions,
@@ -21,9 +34,9 @@ with per_person as (
     count(*) filter (where events.event_name = 'support_tool_completed') as support_tools_completed,
     count(*) filter (where events.event_name = 'insights_viewed') as insights_opened,
     count(*) filter (where events.event_name = 'community_engaged') as community_actions
-  from public.analytics_events as events
+  from identified_events as events
   where events.occurred_at >= now() - interval '30 days'
-  group by events.anonymous_id
+  group by events.person_key, events.resolved_user_id
 )
 select
   coalesce(nullif(btrim(profile.display_name), ''), 'Anonymous visitor') as "Person",
