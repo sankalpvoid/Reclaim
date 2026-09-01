@@ -119,6 +119,30 @@ where occurred_at >= now() - interval '30 days'
 group by event_name
 order by users desc, events desc;
 
+-- 5b. Screen popularity in common language
+select
+  case properties->>'screen'
+    when 'home' then 'Home / Today'
+    when 'health' then 'Health recovery'
+    when 'momentum' then 'Momentum'
+    when 'dreams' then 'Dreams'
+    when 'insights' then 'Insights / Patterns'
+    when 'circles' then 'Community'
+    when 'craving' then 'Craving support'
+    when 'more' then 'More / Settings'
+    when 'setup' then 'Plan setup'
+    when 'auth' then 'Sign in'
+    else initcap(coalesce(properties->>'screen', 'Unknown'))
+  end as "Screen",
+  count(distinct anonymous_id) as "People who opened it",
+  count(*) as "Total opens",
+  round(count(*)::numeric / nullif(count(distinct anonymous_id), 0), 1) as "Opens per person"
+from public.analytics_events
+where event_name = 'screen_viewed'
+  and occurred_at >= now() - interval '30 days'
+group by properties->>'screen'
+order by "People who opened it" desc, "Total opens" desc;
+
 -- 6. Craving outcomes and support tool effectiveness
 select
   properties->>'tool' as tool,
@@ -131,6 +155,61 @@ where occurred_at >= now() - interval '30 days'
   and event_name in ('support_tool_completed', 'tool_feedback')
 group by properties->>'tool'
 order by completions desc;
+
+-- 6b. Useful feature funnels: opened versus completed
+with feature_funnels as (
+  select 'Quick check-in' as feature,
+    count(*) filter (where event_name = 'quick_checkin_opened') as started,
+    count(*) filter (where event_name = 'checkin_completed') as completed
+  from public.analytics_events where occurred_at >= now() - interval '30 days'
+  union all
+  select 'Create a dream',
+    count(*) filter (where event_name = 'dream_goal_started'),
+    count(*) filter (where event_name = 'dream_goal_created')
+  from public.analytics_events where occurred_at >= now() - interval '30 days'
+  union all
+  select 'Share a community story',
+    count(*) filter (where event_name = 'community_engaged' and properties->>'engagement' = 'share_started'),
+    count(*) filter (where event_name = 'community_story_shared')
+  from public.analytics_events where occurred_at >= now() - interval '30 days'
+  union all
+  select 'Sign in or create account',
+    count(*) filter (where event_name = 'auth_started'),
+    count(*) filter (where event_name = 'auth_submitted')
+  from public.analytics_events where occurred_at >= now() - interval '30 days'
+)
+select feature as "Feature", started as "Started", completed as "Completed",
+  round(100.0 * completed / nullif(started, 0), 1) as "Completion percent"
+from feature_funnels
+order by started desc;
+
+-- 6c. Session quality: are visits becoming meaningful?
+select
+  count(*) as "Measured sessions",
+  round(avg((properties->>'duration_seconds')::numeric), 0) as "Average seconds in Reclaim",
+  round(avg((properties->>'screens_seen')::numeric), 1) as "Average screens explored",
+  round(avg((properties->>'meaningful_actions')::numeric), 1) as "Average meaningful actions",
+  round(100.0 * count(*) filter (where (properties->>'meaningful_actions')::int > 0)
+    / nullif(count(*), 0), 1) as "Sessions with meaningful action percent"
+from public.analytics_events
+where event_name = 'session_summary'
+  and occurred_at >= now() - interval '30 days';
+
+-- 6d. Check-in destinations without storing the user's exact mood answer
+select
+  case properties->>'outcome'
+    when 'home' then 'Continued normally'
+    when 'support' then 'Needed emotional support'
+    when 'craving_support' then 'Needed craving support'
+    else 'Other'
+  end as "What Reclaim helped them do next",
+  count(*) as "Check-ins",
+  count(distinct anonymous_id) as "People"
+from public.analytics_events
+where event_name = 'checkin_completed'
+  and occurred_at >= now() - interval '30 days'
+group by properties->>'outcome'
+order by "Check-ins" desc;
 
 -- 7. Day 1, 3, and 7 return retention (calendar-day based)
 with session_days as (
