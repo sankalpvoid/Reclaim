@@ -17,7 +17,7 @@ alter table public.analytics_events
     'insight_period_changed', 'momentum_tab_viewed',
     'dream_goal_started', 'dream_goal_created', 'dream_goal_delete_started',
     'community_story_shared', 'community_reply_shared', 'setback_logged',
-    'session_summary'
+    'session_summary', 'for_you_opened', 'for_you_action'
   ));
 
 comment on table public.analytics_events is
@@ -27,4 +27,3 @@ comment on table public.analytics_events is
 alter table public.analytics_events enable row level security;
 revoke all on table public.analytics_events from anon, authenticated;
 grant insert on table public.analytics_events to anon, authenticated;
-
