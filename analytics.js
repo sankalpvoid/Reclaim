@@ -19,12 +19,12 @@ const EVENT_NAMES = new Set([
   'insight_period_changed', 'momentum_tab_viewed',
   'dream_goal_started', 'dream_goal_created', 'dream_goal_delete_started',
   'community_story_shared', 'community_reply_shared', 'setback_logged',
-  'session_summary'
+  'session_summary', 'for_you_opened', 'for_you_action'
 ]);
 const SAFE_PROPERTY_KEYS = new Set([
   'tool', 'feedback', 'resisted', 'engagement', 'trigger_category', 'source',
   'screen', 'outcome', 'auth_action', 'period', 'tab', 'entry_stage',
-  'duration_seconds', 'screens_seen', 'meaningful_actions'
+  'duration_seconds', 'screens_seen', 'meaningful_actions', 'action'
 ]);
 const VALID_MODES = new Set(['quit', 'reduce', 'track']);
 const VALID_TOOLS = new Set(['breathe', 'timer', 'water', 'walk']);
@@ -206,7 +206,8 @@ document.addEventListener('click', event => {
     : null;
   if (engagement) track('community_engaged', { engagement });
 
-  if (element.matches('[data-checkin]')) track('quick_checkin_opened');
+  if (element.matches('[data-for-you]')) track('for_you_opened');
+  if (element.matches('[data-for-you-action]')) track('for_you_action', { action: element.dataset.forYouAction });
   if (element.matches('[data-mood], [data-quick-mood]')) {
     const mood = element.dataset.mood || element.dataset.quickMood;
     const outcome = mood === 'struggling' ? 'support' : mood === 'craving' ? 'craving_support' : 'home';
