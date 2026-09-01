@@ -31,6 +31,9 @@ create index if not exists analytics_events_anonymous_time_idx
   on public.analytics_events (anonymous_id, occurred_at desc);
 create index if not exists analytics_events_session_idx
   on public.analytics_events (session_id);
+create index if not exists analytics_events_user_time_idx
+  on public.analytics_events (user_id, occurred_at desc)
+  where user_id is not null;
 
 alter table public.analytics_events enable row level security;
 revoke all on table public.analytics_events from anon, authenticated;
@@ -48,4 +51,3 @@ create policy "signed in users can submit their analytics"
 
 -- Intentionally no SELECT, UPDATE, or DELETE grants/policies for app users.
 -- Founders should run aggregate queries in the Supabase SQL Editor.
-
