@@ -22,6 +22,7 @@ const VALID_MODES = new Set(['quit', 'reduce', 'track']);
 const VALID_TOOLS = new Set(['breathe', 'timer', 'water', 'walk']);
 const VALID_FEEDBACK = new Set(['yes', 'a_little', 'not_really', 'skipped']);
 const debug = new URLSearchParams(location.search).has('analytics-debug');
+const disabled = new URLSearchParams(location.search).has('analytics-disabled');
 const local = ['localhost', '127.0.0.1'].includes(location.hostname);
 
 function storedJson(key, storage = localStorage) {
@@ -73,7 +74,7 @@ function safeProperties(properties = {}) {
 }
 
 function track(eventName, properties = {}, modeOverride = null) {
-  if (!EVENT_NAMES.has(eventName) || (local && !debug)) return;
+  if (disabled || !EVENT_NAMES.has(eventName) || (local && !debug)) return;
   const { token, userId } = authContext();
   const payload = {
     anonymous_id: anonymousId,
