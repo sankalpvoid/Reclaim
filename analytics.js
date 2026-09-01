@@ -85,7 +85,7 @@ function track(eventName, properties = {}, modeOverride = null) {
     client_created_at: new Date().toISOString()
   };
   if (debug) {
-    console.info('[Reclaim analytics]', payload);
+    console.info('[Reclaim analytics]', JSON.stringify(payload));
     if (local) return;
   }
   fetch(`${SUPABASE_URL}/rest/v1/analytics_events`, {
