@@ -1,6 +1,51 @@
 -- Reclaim founder analytics. Run in Supabase SQL Editor.
 -- Change interval '30 days' where a different reporting window is needed.
 
+-- Plain-language tester report. Signed-in people appear by their chosen name.
+-- Visitors who never signed in remain anonymous by design.
+with per_person as (
+  select
+    events.anonymous_id,
+    max(events.user_id::text)::uuid as user_id,
+    min(events.occurred_at) as first_seen,
+    max(events.occurred_at) as last_seen,
+    count(distinct events.session_id) as sessions,
+    (array_agg(events.journey_mode order by events.occurred_at desc)
+      filter (where events.journey_mode is not null))[1] as current_journey,
+    count(*) filter (where events.event_name = 'cigarette_logged') as cigarettes_logged,
+    count(*) filter (where events.event_name = 'craving_logged') as cravings_logged,
+    count(*) filter (
+      where events.event_name = 'craving_logged'
+        and events.properties->>'resisted' = 'true'
+    ) as cravings_resisted,
+    count(*) filter (where events.event_name = 'support_tool_completed') as support_tools_completed,
+    count(*) filter (where events.event_name = 'insights_viewed') as insights_opened,
+    count(*) filter (where events.event_name = 'community_engaged') as community_actions
+  from public.analytics_events as events
+  where events.occurred_at >= now() - interval '30 days'
+  group by events.anonymous_id
+)
+select
+  coalesce(nullif(btrim(profile.display_name), ''), 'Anonymous visitor') as "Person",
+  case per_person.current_journey
+    when 'quit' then 'Quit smoking now'
+    when 'reduce' then 'Smoke less gradually'
+    when 'track' then 'Track and understand smoking'
+    else 'Not chosen yet'
+  end as "Their plan",
+  per_person.first_seen as "First used Reclaim",
+  per_person.last_seen as "Last used Reclaim",
+  per_person.sessions as "Times they opened Reclaim",
+  per_person.cigarettes_logged as "Cigarettes they logged",
+  per_person.cravings_logged as "Cravings they logged",
+  per_person.cravings_resisted as "Cravings they resisted",
+  per_person.support_tools_completed as "Craving tools completed",
+  per_person.insights_opened as "Times they opened Insights",
+  per_person.community_actions as "Community actions"
+from per_person
+left join public.profiles as profile on profile.id = per_person.user_id
+order by per_person.last_seen desc;
+
 -- 1. Reach and returning usage
 select
   count(distinct anonymous_id) as unique_users,
@@ -96,4 +141,3 @@ select count(*) as eligible_users,
   round(100.0 * count(*) filter (where d3) / nullif(count(*) filter (where first_date <= current_date - 3), 0), 1) as d3_pct,
   round(100.0 * count(*) filter (where d7) / nullif(count(*) filter (where first_date <= current_date - 7), 0), 1) as d7_pct
 from retention;
-
