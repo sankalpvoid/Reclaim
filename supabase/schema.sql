@@ -14,6 +14,8 @@ create table if not exists public.profiles (
   country text check (country is null or country ~ '^[A-Z]{2}$'),
   attempt_number integer not null default 1 check (attempt_number > 0),
   best_streak_seconds bigint not null default 0 check (best_streak_seconds >= 0),
+  journey_mode text not null default 'quit' check (journey_mode in ('quit','reduce','track')),
+  daily_target integer check (daily_target is null or daily_target >= 0),
   created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
 create table if not exists public.daily_checkins (
