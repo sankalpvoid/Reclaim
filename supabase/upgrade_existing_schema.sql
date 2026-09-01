@@ -6,6 +6,8 @@ alter table public.profiles add column if not exists currency_symbol text not nu
 alter table public.profiles add column if not exists country text check (country is null or country ~ '^[A-Z]{2}$');
 alter table public.profiles add column if not exists attempt_number integer not null default 1 check (attempt_number > 0);
 alter table public.profiles add column if not exists best_streak_seconds bigint not null default 0 check (best_streak_seconds >= 0);
+alter table public.profiles add column if not exists journey_mode text not null default 'quit' check (journey_mode in ('quit','reduce','track'));
+alter table public.profiles add column if not exists daily_target integer check (daily_target is null or daily_target >= 0);
 alter table public.smoking_events add column if not exists event_type text not null default 'smoked' check (event_type in ('smoked','craving'));
 alter table public.smoking_events add column if not exists resisted boolean;
 alter table public.smoking_events add column if not exists toolkit text;
