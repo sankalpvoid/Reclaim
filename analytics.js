@@ -13,14 +13,29 @@ const EVENT_NAMES = new Set([
   'cigarette_logged', 'trigger_captured', 'craving_logged',
   'craving_support_opened', 'support_tool_started',
   'support_tool_completed', 'tool_feedback', 'insights_viewed',
-  'community_viewed', 'community_engaged'
+  'community_viewed', 'community_engaged', 'screen_viewed',
+  'quick_checkin_opened', 'checkin_completed', 'plan_editor_opened',
+  'plan_saved', 'auth_started', 'auth_submitted',
+  'insight_period_changed', 'momentum_tab_viewed',
+  'dream_goal_started', 'dream_goal_created', 'dream_goal_delete_started',
+  'community_story_shared', 'community_reply_shared', 'setback_logged',
+  'session_summary'
 ]);
 const SAFE_PROPERTY_KEYS = new Set([
-  'tool', 'feedback', 'resisted', 'engagement', 'trigger_category', 'source'
+  'tool', 'feedback', 'resisted', 'engagement', 'trigger_category', 'source',
+  'screen', 'outcome', 'auth_action', 'period', 'tab', 'entry_stage',
+  'duration_seconds', 'screens_seen', 'meaningful_actions'
 ]);
 const VALID_MODES = new Set(['quit', 'reduce', 'track']);
 const VALID_TOOLS = new Set(['breathe', 'timer', 'water', 'walk']);
 const VALID_FEEDBACK = new Set(['yes', 'a_little', 'not_really', 'skipped']);
+const VALID_SCREENS = new Set([
+  'intro', 'auth', 'setup', 'mood', 'support', 'home', 'health',
+  'momentum', 'dreams', 'more', 'insights', 'circles', 'craving'
+]);
+const NUMERIC_PROPERTY_KEYS = new Set([
+  'duration_seconds', 'screens_seen', 'meaningful_actions'
+]);
 const debug = new URLSearchParams(location.search).has('analytics-debug');
 const disabled = new URLSearchParams(location.search).has('analytics-disabled');
 const local = ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -67,6 +82,11 @@ function safeProperties(properties = {}) {
     if (key === 'tool' && !VALID_TOOLS.has(value)) continue;
     if (key === 'feedback' && !VALID_FEEDBACK.has(value)) continue;
     if (key === 'resisted' && typeof value !== 'boolean') continue;
+    if (key === 'screen' && !VALID_SCREENS.has(value)) continue;
+    if (NUMERIC_PROPERTY_KEYS.has(key) && Number.isInteger(value) && value >= 0) {
+      result[key] = Math.min(value, 86400);
+      continue;
+    }
     if (typeof value === 'string' && value.length <= 48) result[key] = value;
     if (typeof value === 'boolean') result[key] = value;
   }
@@ -106,6 +126,9 @@ track('session_started');
 if (previousSessionId && previousSessionId !== browserSessionId) track('returning_session');
 
 let activeTool = null;
+const sessionStartedAt = Date.now();
+const screensSeen = new Set();
+let meaningfulActions = 0;
 let previousCravingCount = Array.isArray(currentState().cravings) ? currentState().cravings.length : 0;
 let lastScreen = '';
 
@@ -135,6 +158,8 @@ function observeState() {
   const screen = state.stage === 'app' ? state.view || 'home' : state.stage || 'intro';
   if (screen === lastScreen) return;
   lastScreen = screen;
+  screensSeen.add(screen);
+  track('screen_viewed', { screen });
   if (screen === 'home') track('home_viewed');
   if (screen === 'insights') track('insights_viewed');
   if (screen === 'circles') track('community_viewed');
@@ -180,7 +205,48 @@ document.addEventListener('click', event => {
     : element.matches('[data-complete-challenge]') ? 'challenge_completed'
     : null;
   if (engagement) track('community_engaged', { engagement });
+
+  if (element.matches('[data-checkin]')) track('quick_checkin_opened');
+  if (element.matches('[data-mood], [data-quick-mood]')) {
+    const mood = element.dataset.mood || element.dataset.quickMood;
+    const outcome = mood === 'struggling' ? 'support' : mood === 'craving' ? 'craving_support' : 'home';
+    track('checkin_completed', { outcome });
+  }
+  if (element.matches('[data-edit-profile]')) track('plan_editor_opened');
+  if (element.matches('[data-open-auth], [data-auth], [data-google]')) {
+    const authAction = element.dataset.openAuth || element.dataset.auth || (element.matches('[data-google]') ? 'google' : 'unknown');
+    track('auth_started', { auth_action: authAction });
+  }
+  if (element.matches('[data-insight-period]')) track('insight_period_changed', { period: element.dataset.insightPeriod });
+  if (element.matches('[data-momentum-tab]')) track('momentum_tab_viewed', { tab: element.dataset.momentumTab });
+  if (element.matches('[data-add-goal]')) track('dream_goal_started');
+  if (element.matches('[data-delete-goal]')) track('dream_goal_delete_started');
+
+  if (element.matches('[data-log-cigarette], [data-tool], [data-craving-feedback], [data-share-story], [data-cheer], [data-save-post], [data-log-setback]')) {
+    meaningfulActions += 1;
+  }
 }, true);
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  if (form.id === 'setup-form') track('plan_saved');
+  if (form.id === 'auth-form') track('auth_submitted', { auth_action: currentState()?.authMode || 'unknown' });
+  if (form.id === 'goal-form') track('dream_goal_created');
+  if (form.id === 'community-form') track('community_story_shared');
+  if (form.id === 'reply-form') track('community_reply_shared');
+  if (form.id === 'setback-form') track('setback_logged');
+  if (['setup-form', 'goal-form', 'community-form', 'reply-form', 'setback-form'].includes(form.id)) meaningfulActions += 1;
+}, true);
+
+window.addEventListener('pagehide', () => {
+  track('session_summary', {
+    entry_stage: currentState()?.stage || 'unknown',
+    duration_seconds: Math.max(0, Math.round((Date.now() - sessionStartedAt) / 1000)),
+    screens_seen: screensSeen.size,
+    meaningful_actions: meaningfulActions
+  });
+});
 
 const app = document.querySelector('#app');
 if (app) new MutationObserver(observeState).observe(app, { childList: true, subtree: true });
