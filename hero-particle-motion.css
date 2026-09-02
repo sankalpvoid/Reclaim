@@ -1,33 +1,44 @@
-/* A live hero: the artwork breathes while independent particles continuously emanate left. */
-.hero-runner .runner-art:not(.runner-particles) {
-  transform-origin: 72% 55%;
-  animation: reclaim-hero-breathe 5.6s ease-in-out infinite;
+/* Live hero: preserve the production artwork and add an ambient particle stream above it. */
+.hero-runner{isolation:isolate}
+.hero-runner .hero-artwork{position:relative;z-index:0}
+.hero-runner .runner-art:not(.runner-particles){
+  transform-origin:72% 55%;
+  will-change:transform,filter;
+  animation:reclaim-hero-breathe 5.6s ease-in-out infinite;
 }
-.hero-runner .runner-art-dark {
-  object-position: 67% 50%;
-  filter: saturate(.78) contrast(1.18) brightness(.92);
-  mix-blend-mode: screen;
+.hero-runner .runner-art-dark{
+  object-position:67% 50%;
+  filter:saturate(.78) contrast(1.18) brightness(.92);
+  mix-blend-mode:screen;
 }
-.hero-runner .runner-art-light { object-position: 67% 50%; }
-.live-hero-particles {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(90deg, #000 3%, #000 77%, transparent 96%);
-  mask-image: linear-gradient(90deg, #000 3%, #000 77%, transparent 96%);
+.hero-runner .runner-art-light{
+  object-position:67% 50%;
 }
-@keyframes reclaim-hero-breathe {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); filter: brightness(.94); }
-  50% { transform: translate3d(0, -1.5px, 0) scale(1.012); filter: brightness(1.06); }
+.live-hero-particles{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  overflow:hidden;
+  mix-blend-mode:normal;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 93%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 93%,transparent 100%);
 }
-html[data-theme="light"] .hero-runner .runner-art-light {
-  mix-blend-mode: multiply;
-  filter: saturate(.86) contrast(1.03);
+.home-hero-copy{position:relative;z-index:2}
+@keyframes reclaim-hero-breathe{
+  0%,100%{transform:translate3d(0,0,0) scale(1);filter:brightness(.96)}
+  50%{transform:translate3d(0,-2px,0) scale(1.012);filter:brightness(1.045)}
 }
-@media (prefers-reduced-motion: reduce) {
-  .hero-runner .runner-art:not(.runner-particles) { animation: none !important; }
-  .live-hero-particles { display: none !important; }
+html[data-theme="light"] .hero-runner .runner-art-light{
+  mix-blend-mode:multiply;
+  filter:saturate(.86) contrast(1.03);
+}
+html[data-theme="light"] .live-hero-particles{filter:drop-shadow(0 0 3px rgba(104,56,243,.22))}
+html[data-theme="dark"] .live-hero-particles{filter:drop-shadow(0 0 4px rgba(158,127,255,.28))}
+@media(max-width:390px){.hero-runner .runner-art:not(.runner-particles){animation-duration:6.8s}}
+@media(prefers-reduced-motion:reduce){
+  .hero-runner .runner-art:not(.runner-particles){animation:none!important}
+  .live-hero-particles{display:none!important}
 }
