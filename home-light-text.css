@@ -1,0 +1,19 @@
+/* Light-mode Home typography contrast only. Dark mode is untouched. */
+html[data-theme="light"] .home-screen,
+html[data-theme="light"] .home-screen .eyebrow,
+html[data-theme="light"] .home-screen .home-hero-copy,
+html[data-theme="light"] .home-screen .home-hero-copy .eyebrow,
+html[data-theme="light"] .home-screen .home-days,
+html[data-theme="light"] .home-screen .hero-label,
+html[data-theme="light"] .home-screen .home-live-clock,
+html[data-theme="light"] .home-screen .home-live-clock i,
+html[data-theme="light"] .home-screen .hero-message,
+html[data-theme="light"] .home-screen .home-stats .stat-value,
+html[data-theme="light"] .home-screen .home-stats .stat-label,
+html[data-theme="light"] .home-screen .home-stats strong,
+html[data-theme="light"] .home-screen .home-stats small,
+html[data-theme="light"] .home-screen .stat-value,
+html[data-theme="light"] .home-screen .stat-label {
+  color:#28183f !important;
+  text-shadow:none !important;
+}
