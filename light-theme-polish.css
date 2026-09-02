@@ -169,3 +169,170 @@ html[data-theme="light"] .tracking-summary .card{
   color:#241b34;
 }
 html[data-theme="light"] .source{color:#6d6677}
+
+/* Second visual QA pass: screenshots revealed a few dark-mode islands. */
+html[data-theme="light"] .achievement-summary{
+  background:linear-gradient(135deg,#fff,#f6f1ff);
+  border:1px solid #cbb9f2;
+  border-radius:22px;
+  color:#241b34;
+  box-shadow:0 10px 26px rgba(42,24,77,.07);
+}
+html[data-theme="light"] .achievement-summary h1,
+html[data-theme="light"] .achievement-summary strong{color:#241b34}
+html[data-theme="light"] .achievement-summary h1 small,
+html[data-theme="light"] .achievement-summary .eyebrow{color:#756d80}
+
+html[data-theme="light"] .circles-screen{background:#f8f6fc}
+html[data-theme="light"] .circle-mark{
+  color:#6840df;
+  background:radial-gradient(circle,#eee7ff,#f7f3ff 68%);
+  border-color:#cbb8f2;
+  box-shadow:0 8px 20px rgba(108,60,255,.10);
+}
+html[data-theme="light"] .community-view-tabs,
+html[data-theme="light"] .community-stats,
+html[data-theme="light"] .community-actions>button,
+html[data-theme="light"] .library-hero,
+html[data-theme="light"] .community-empty{
+  background:#fff;
+  border-color:#ddd7e5;
+  color:#241b34;
+  box-shadow:0 8px 22px rgba(42,24,77,.045);
+}
+html[data-theme="light"] .community-view-tabs button{
+  color:#77707f;
+  background:transparent;
+}
+html[data-theme="light"] .community-view-tabs button.active{
+  color:#4f27c2;
+  background:#f2edff;
+  border-color:#8f6bf0;
+}
+html[data-theme="light"] .community-view-tabs button b{
+  color:#5b37c8;
+  background:#e9e0ff;
+}
+html[data-theme="light"] .stage-selector button{
+  background:#fff;
+  color:#6f6878;
+  border-color:#ddd7e5;
+  box-shadow:0 5px 14px rgba(42,24,77,.035);
+}
+html[data-theme="light"] .stage-selector button.active{
+  color:#241b34;
+  background:#f1ebff;
+  border-color:#8e68ef;
+  box-shadow:0 7px 18px rgba(108,60,255,.09);
+}
+html[data-theme="light"] .stage-selector button small{color:#6439d5}
+html[data-theme="light"] .community-stats span{border-color:#e1dbe8}
+html[data-theme="light"] .community-stats strong{color:#241b34}
+html[data-theme="light"] .community-stats small{color:#77707f}
+html[data-theme="light"] .community-actions>button .app-icon{color:#6840df}
+html[data-theme="light"] .community-actions>button strong{color:#241b34}
+html[data-theme="light"] .community-actions>button small,
+html[data-theme="light"] .community-actions>button b{color:#7c7485}
+html[data-theme="light"] .community-filter button{
+  background:#fff;
+  color:#6f6878;
+  border-color:#dcd5e4;
+}
+html[data-theme="light"] .community-filter button.active{
+  color:#4f27c2;
+  background:#eee7ff;
+  border-color:#8058ea;
+}
+
+html[data-theme="light"] .pattern-hero,
+html[data-theme="light"] .what-works-card,
+html[data-theme="light"] .response-strip,
+html[data-theme="light"] .comparison-card,
+html[data-theme="light"] .period-summary,
+html[data-theme="light"] .learned-card{
+  background:linear-gradient(135deg,#fff,#f7f3ff);
+  border-color:#cdbcf0;
+  color:#241b34;
+  box-shadow:0 9px 24px rgba(42,24,77,.055);
+}
+html[data-theme="light"] .pattern-copy strong,
+html[data-theme="light"] .what-works-card strong,
+html[data-theme="light"] .response-top strong,
+html[data-theme="light"] .comparison-row strong,
+html[data-theme="light"] .period-summary strong,
+html[data-theme="light"] .learned-grid strong{color:#241b34}
+html[data-theme="light"] .pattern-copy p,
+html[data-theme="light"] .what-works-card p,
+html[data-theme="light"] .response-strip p,
+html[data-theme="light"] .period-summary p{color:#6e6777}
+html[data-theme="light"] .rhythm-row i,
+html[data-theme="light"] .response-progress{background:#e5dfeb}
+html[data-theme="light"] .rhythm-row span,
+html[data-theme="light"] .rhythm-row strong,
+html[data-theme="light"] .comparison-row small,
+html[data-theme="light"] .learned-grid small{color:#77707f}
+html[data-theme="light"] .rhythm-row.active span,
+html[data-theme="light"] .rhythm-row.active strong{color:#5f38c9}
+html[data-theme="light"] .comparison-row{border-color:#e3dde9}
+html[data-theme="light"] .comparison-row>span{color:#746d7d}
+html[data-theme="light"] .learned-grid>div{
+  background:#f7f3fb;
+  border-color:#e1d9e9;
+}
+
+html[data-theme="light"] .path-screen{
+  background:radial-gradient(circle at 80% 12%,rgba(108,60,255,.08),transparent 28%),#f8f6fc;
+  color:#241b34;
+}
+html[data-theme="light"] .path-heading h1{color:#241b34}
+html[data-theme="light"] .path-heading .muted,
+html[data-theme="light"] .path-note{color:#716a7a}
+html[data-theme="light"] .path-card{
+  background:#fff;
+  color:#241b34;
+  border-color:#ddd7e5;
+  box-shadow:0 8px 22px rgba(42,24,77,.055);
+}
+html[data-theme="light"] .path-card.selected{
+  background:#f1ebff;
+  border-color:#7f55ec;
+}
+html[data-theme="light"] .path-icon{
+  background:#eee7ff;
+  color:#6138ce;
+}
+html[data-theme="light"] .path-card small{color:#77707f}
+html[data-theme="light"] .path-card b{color:#7c55e9}
+
+/* Home quick appearance control. Kept near the trailing notification action so the leading edge remains navigation. */
+.home-screen .topbar,
+.tracking-home .topbar{position:relative}
+.quick-theme-toggle{
+  position:absolute;
+  right:52px;
+  top:50%;
+  transform:translateY(-50%);
+  width:48px;
+  height:28px;
+  padding:0;
+  border:1px solid #36313d;
+  border-radius:999px;
+  overflow:hidden;
+  cursor:pointer;
+  background:#10131d;
+  box-shadow:inset 0 0 10px rgba(255,255,255,.04);
+}
+.quick-theme-toggle .quick-sky{position:absolute;inset:0;display:block}
+.quick-sun,.quick-moon,.quick-cloud,.quick-stars{position:absolute;display:block;transition:all .25s ease}
+.quick-sun{width:16px;height:16px;left:5px;top:5px;border-radius:50%;background:#ffd35a;box-shadow:0 0 9px rgba(255,211,90,.55)}
+.quick-cloud{height:5px;border-radius:99px;background:#fff;opacity:.9}
+.quick-cloud.c1{width:15px;left:18px;top:9px}.quick-cloud.c2{width:10px;left:23px;top:14px;opacity:.72}
+.quick-moon{width:16px;height:16px;right:5px;top:5px;border-radius:50%;background:#f7f4df;box-shadow:inset 4px -1px 0 #cfd0df,0 0 9px rgba(247,244,223,.28);opacity:0;transform:translateX(7px)}
+.quick-stars{right:23px;top:5px;color:#f5f3ff;font:10px/1 serif;letter-spacing:1px;opacity:0}
+.quick-theme-toggle.dark{background:linear-gradient(90deg,#11152a,#252842);border-color:#454962}
+.quick-theme-toggle.dark .quick-sun,.quick-theme-toggle.dark .quick-cloud{opacity:0;transform:translateX(-8px)}
+.quick-theme-toggle.dark .quick-moon{opacity:1;transform:none}
+.quick-theme-toggle.dark .quick-stars{opacity:.82}
+html[data-theme="light"] .quick-theme-toggle{background:linear-gradient(90deg,#9dd7ff,#d8efff);border-color:#b4cce2;box-shadow:0 4px 10px rgba(66,91,121,.10)}
+html[data-theme="light"] .quick-theme-toggle:focus-visible,
+html[data-theme="dark"] .quick-theme-toggle:focus-visible{outline:2px solid #7d55ec;outline-offset:2px}
