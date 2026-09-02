@@ -6,19 +6,28 @@
     if (mounted.has(hero)) return;
 
     const darkArt = hero.querySelector('.runner-art-dark');
-    const lightArt = hero.querySelector('.runner-art-light');
-    if (!darkArt || !lightArt) return;
+    if (!darkArt) return;
 
-    // Keep the existing production artwork. The earlier unfinished version
-    // pointed these images at assets that were never committed, so the live
-    // layer now augments the known-good art instead of replacing it.
+    // The inline light-mode image has proved fragile in preview builds. Reuse
+    // the known-good runner PNG for both themes and let CSS recolour it.
+    // Removing the unused image also guarantees it can never enter document
+    // flow as a giant broken-image box and push the dashboard content away.
+    hero.querySelectorAll('.runner-art-light, .runner-particles').forEach((node) => node.remove());
+    darkArt.classList.add('runner-art-live');
+    darkArt.addEventListener('error', () => {
+      darkArt.hidden = true;
+    }, { once: true });
+
     const canvas = document.createElement('canvas');
     canvas.className = 'live-hero-particles';
     canvas.setAttribute('aria-hidden', 'true');
     hero.appendChild(canvas);
 
     const ctx = canvas.getContext('2d', { alpha: true });
-    if (!ctx) return;
+    if (!ctx) {
+      canvas.remove();
+      return;
+    }
 
     let width = 0;
     let height = 0;
@@ -32,7 +41,9 @@
       const rect = hero.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = Math.max(1, rect.width);
-      height = Math.max(1, rect.height);
+      // Keep the animated layer inside the artwork band. It must never size
+      // itself from (or contribute to) the full page/dashboard height.
+      height = Math.max(1, Math.min(196, rect.height));
       canvas.width = Math.max(1, Math.round(width * dpr));
       canvas.height = Math.max(1, Math.round(height * dpr));
       canvas.style.width = `${width}px`;
@@ -48,10 +59,8 @@
       if (!width || !height) return;
       const light = isLight();
 
-      // The figure occupies the right side of the hero. Emit mostly from the
-      // upper torso / shoulder area and let the stream dissolve to the left.
-      const originX = width * (light ? (0.70 + Math.random() * 0.15) : (0.72 + Math.random() * 0.14));
-      const originY = height * (0.22 + Math.random() * 0.42);
+      const originX = width * (0.70 + Math.random() * 0.15);
+      const originY = height * (0.20 + Math.random() * 0.46);
       const life = 1800 + Math.random() * 2500;
       const speed = (boosted ? 76 : 48) + Math.random() * (boosted ? 64 : 48);
       const size = (boosted ? 1.5 : 1.05) + Math.random() * (boosted ? 3.6 : 2.7);
@@ -114,7 +123,6 @@
 
       if (!reduceMotion.matches && document.visibilityState === 'visible') {
         const boosted = now < burstUntil;
-        // Dense enough to be clearly visible, but capped to stay inexpensive.
         spawnBudget += dt * (boosted ? 70 : 34);
         while (spawnBudget >= 1 && particles.length < (boosted ? 125 : 92)) {
           spawn(boosted);
@@ -151,7 +159,6 @@
     resizeObserver.observe(hero);
     hero.addEventListener('pointerdown', burst, { passive: true });
     resize();
-    // Seed immediately so the effect is visible without waiting several seconds.
     for (let i = 0; i < 28; i += 1) spawn(false);
     frame = requestAnimationFrame(render);
 
