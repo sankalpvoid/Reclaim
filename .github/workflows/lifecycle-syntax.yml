@@ -5,6 +5,7 @@ on:
     paths:
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
+      - 'login-resume.js'
       - 'index.html'
   push:
     branches:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
+      - 'login-resume.js'
       - 'index.html'
 
 jobs:
@@ -26,3 +28,4 @@ jobs:
         run: |
           node --check checkin-sync.js
           node --check session-bootstrap.js
+          node --check login-resume.js
