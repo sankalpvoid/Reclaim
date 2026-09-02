@@ -1,0 +1,97 @@
+/* Reclaim light appearance — deliberately scoped so the original dark theme stays untouched. */
+.runner-art-light{display:none}
+.hero-artwork{display:contents}
+.appearance-card{display:grid;gap:16px}
+.appearance-copy{display:flex;align-items:center;gap:13px}
+.appearance-copy strong,.appearance-copy small{display:block}
+.appearance-copy small{margin-top:4px;color:var(--muted);font-size:11px}
+.appearance-icon{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:#2a194f;color:#b89dff}
+.theme-toggle{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border-radius:15px;background:#09090a;border:1px solid #2e2e33}
+.theme-toggle button{height:45px;border:0;border-radius:11px;background:transparent;color:#85818e;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;cursor:pointer}
+.theme-toggle button.active{background:#28202f;color:#fff;box-shadow:0 3px 12px #0008}
+.theme-toggle .app-icon{font-size:20px}
+
+html[data-theme="light"]{
+  --bg:#f8f6fc;--surface:#fff;--surface-2:#f1edf7;--line:#ded8e8;
+  --text:#1d172d;--muted:#686274;--purple:#6838f3;--purple-2:#6e41dd;
+  color-scheme:light;background:#efebf5
+}
+html[data-theme="light"] body{background:#efebf5;color:var(--text)}
+html[data-theme="light"] .shell{background:var(--bg)}
+html[data-theme="light"] .screen{color:var(--text)}
+html[data-theme="light"] .icon-btn{color:#211a32}
+html[data-theme="light"] .menu-trigger span{background:#211a32}
+html[data-theme="light"] .card{background:#fff;border-color:#ded8e8;box-shadow:0 10px 26px rgba(42,24,77,.055)}
+html[data-theme="light"] .primary{color:#fff;background:linear-gradient(110deg,#6535ef,#7a49fa);box-shadow:0 9px 25px rgba(104,56,243,.22)}
+html[data-theme="light"] .secondary{color:#271e39;background:#fff;border-color:#d9d2e3}
+html[data-theme="light"] .field{background:#fff;color:#211a32;border-color:#d8d1e1;box-shadow:0 3px 12px rgba(42,24,77,.035)}
+html[data-theme="light"] .field:focus{border-color:#7448ee;box-shadow:0 0 0 3px rgba(108,60,255,.12)}
+html[data-theme="light"] .mood{color:#211a32}
+html[data-theme="light"] .mood-icon{background:#eee7ff;color:#6033d8}
+html[data-theme="light"] .auth-toggle{background:#ece7f2}
+html[data-theme="light"] .auth-toggle .active{background:#fff;color:#211a32;box-shadow:0 3px 10px rgba(42,24,77,.08)}
+html[data-theme="light"] .tabs{border-color:#ddd7e5}
+html[data-theme="light"] .tabs button.active{color:#231a33}
+html[data-theme="light"] .nav{background:rgba(255,255,255,.94);border-color:#dfd9e6;box-shadow:0 -8px 24px rgba(42,24,77,.06)}
+html[data-theme="light"] .nav button{color:#847e8c}
+html[data-theme="light"] .nav button.active{color:#693bf0}
+html[data-theme="light"] .modal{background:rgba(31,23,44,.38)}
+html[data-theme="light"] .modal-body{background:#fbf9fd;color:#211a32;border-color:#ddd7e5;box-shadow:0 -20px 50px rgba(42,24,77,.15)}
+html[data-theme="light"] .toast{background:#251b37;color:#fff}
+html[data-theme="light"] .progress,html[data-theme="light"] .roadmap-track,html[data-theme="light"] .tracking-meter{background:#e5dfeb}
+html[data-theme="light"] .dot{background:#fff;border-color:#d7d0df}
+html[data-theme="light"] .milestone:before{background:#d9d2e1}
+html[data-theme="light"] .ring{background:conic-gradient(var(--purple) var(--progress),#e4dfea 0)}
+html[data-theme="light"] .ring:before{background:#f8f6fc}
+
+html[data-theme="light"] .checkin-trigger{background:#fff!important;border-color:#d9d2e3;color:#6236dc!important;box-shadow:0 5px 16px rgba(42,24,77,.07)}
+html[data-theme="light"] .stat-icon>.app-icon{color:#4f485c}
+html[data-theme="light"] .hero-runner{background:#f8f6fc!important;border-color:#e0dae8!important;box-shadow:none!important}
+html[data-theme="light"] .runner-art-dark{display:none}
+html[data-theme="light"] .runner-art-light{display:block;mix-blend-mode:multiply;opacity:.97;filter:saturate(.86) contrast(1.04)}
+html[data-theme="light"] .home-hero-copy{z-index:2}
+html[data-theme="light"] .home-days,html[data-theme="light"] .home-live-clock,html[data-theme="light"] .hero-message{color:#20172f}
+html[data-theme="light"] .hero-divider{background:#ddd6e5}
+html[data-theme="light"] .home-stats .card{background:#fff}
+
+html[data-theme="light"] .appearance-icon{background:#eee7ff;color:#6335da}
+html[data-theme="light"] .theme-toggle{background:#ece7f2;border-color:#ddd6e5}
+html[data-theme="light"] .theme-toggle button{color:#706a78}
+html[data-theme="light"] .theme-toggle button.active{background:#fff;color:#2a1d3d;box-shadow:0 3px 10px rgba(42,24,77,.10)}
+html[data-theme="light"] .tracking-home{background:radial-gradient(circle at 72% 14%,rgba(108,60,255,.09),transparent 32%),#f8f6fc}
+html[data-theme="light"] .tracking-intro h1,html[data-theme="light"] .tracking-intro h1 small{color:#211a32}
+html[data-theme="light"] .tracking-date{color:#6f6878}
+html[data-theme="light"] .setup-mode,html[data-theme="light"] .path-card,html[data-theme="light"] .log-cigarette{background:#fff;color:#241b34;border-color:#ddd6e5;box-shadow:0 8px 22px rgba(42,24,77,.05)}
+html[data-theme="light"] .path-card.selected{border-color:#7042ed;background:#f4efff}
+html[data-theme="light"] .tracking-meter i{background:#332b40}
+html[data-theme="light"] .weekly-pattern,html[data-theme="light"] .tracking-context{color:#4f485b}
+html[data-theme="light"] .tracking-bars span{background:#eee9f3}
+html[data-theme="light"] .tracking-bars{border-color:#dcd5e4}
+
+html[data-theme="light"] .health-screen,html[data-theme="light"] .momentum-screen,html[data-theme="light"] .dreams-screen,html[data-theme="light"] .circles-screen{background:#f8f6fc}
+html[data-theme="light"] .live-recovery,html[data-theme="light"] .dream-roadmap{background:radial-gradient(circle at 85% 10%,rgba(108,60,255,.11),transparent 38%),#fff}
+html[data-theme="light"] .roadmap-next{background:#f5f0fd;border-color:#ddd2ef}
+html[data-theme="light"] .roadmap-arrival strong,html[data-theme="light"] .quit-date-trigger strong{color:#241b34}
+html[data-theme="light"] .attempt-story-icon,html[data-theme="light"] .record-icon{background:#eee7ff;color:#6235d7}
+html[data-theme="light"] .calendar-card,html[data-theme="light"] .savings-calendar{background:#fff;border-color:#ddd7e5}
+html[data-theme="light"] .calendar-day{color:#5c5666}
+html[data-theme="light"] .calendar-day.selected{color:#fff;background:#7144ee}
+
+html[data-theme="light"] .struggling-support,html[data-theme="light"] .craving-support{background:radial-gradient(circle at 88% 8%,rgba(108,63,255,.12),transparent 30%),#f8f6fc}
+html[data-theme="light"] .struggling-support h2{color:#211a32}
+html[data-theme="light"] .struggling-support>.stack .card,html[data-theme="light"] .struggling-support [data-support],html[data-theme="light"] .craving-support .tool-card{background:#fff;border-color:#dcd4e7;box-shadow:0 8px 22px rgba(42,24,77,.05)}
+html[data-theme="light"] .struggling-support>.stack .card strong,html[data-theme="light"] .craving-support .tool-card strong{color:#211a32}
+html[data-theme="light"] .struggling-support [data-support="reset"],html[data-theme="light"] .craving-support .tool-card[data-tool="breathe"]{background:#f2ecff;border-color:#9b7bed}
+html[data-theme="light"] .struggling-support [data-support="craving"]{background:#fff6f7;border-color:#efc4cc}
+html[data-theme="light"] .date-wheels select{background:linear-gradient(#fff,#f0e9fb,#fff);color:#211a32;border-color:#d7caee}
+
+html[data-theme="light"] .for-you-card,html[data-theme="light"] .for-you-empty{background:#fff;border-color:#ddd7e5}
+html[data-theme="light"] .for-you-card h3{color:#211a32}
+html[data-theme="light"] .for-you-card p,html[data-theme="light"] .for-you-empty p{color:#696274}
+html[data-theme="light"] .feed-post,html[data-theme="light"] .community-toolbar,html[data-theme="light"] .community-compose{background:#fff!important;border-color:#ddd7e5!important}
+html[data-theme="light"] .avatar{background:#eee7ff;color:#5630bd}
+html[data-theme="light"] .source{background:rgba(255,255,255,.45)}
+html[data-theme="light"] ::selection{background:#d8c8ff;color:#211a32}
+
+@media(min-width:700px){html[data-theme="light"] body{background:radial-gradient(circle at 50% 8%,#e4dcf2,#f3f0f7 48%)}html[data-theme="light"] .shell{border-color:#dcd5e4;box-shadow:0 24px 70px rgba(42,24,77,.10)}}
+@media(prefers-reduced-motion:reduce){html[data-theme="light"] *,html[data-theme="dark"] *{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
