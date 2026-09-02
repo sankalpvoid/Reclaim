@@ -2,10 +2,14 @@ import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
+const LIFECYCLE_KEY='reclaim-lifecycle-v1';
 const VALID_MOODS=new Set(['great','okay','struggling','craving']);
 const CHECKIN_INTERVAL_MS=2*60*60*1000;
 const DAILY_PROMPT_CAP=5;
+const ACTIVE_HEARTBEAT_MS=30*1000;
 const nativeSetItem=Storage.prototype.setItem;
+const startupAt=Date.now();
+const startupLifecycle=readJson(LIFECYCLE_KEY)||{};
 let cloudCheckins=[];
 let syncing=false;
 let scheduled=null;
@@ -19,8 +23,7 @@ let welcomeForUser='';
 function readJson(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function safeDate(value){const date=new Date(value||0);return Number.isFinite(date.getTime())?date.toISOString():new Date().toISOString()}
 function localDay(value){const date=new Date(value||Date.now());if(!Number.isFinite(date.getTime()))return '';const pad=n=>String(n).padStart(2,'0');return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`}
-function escapeHtml(value=''){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]))}
-function navigationType(){return performance.getEntriesByType?.('navigation')?.[0]?.type||'navigate'}
+function escapeHtml(value=''){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[char]))}
 function decodeSub(token=''){
   try{
     const payload=token.split('.')[1];
@@ -57,6 +60,10 @@ function mergeCheckins(local=[],remote=[]){
   return merged.sort((a,b)=>new Date(a.at)-new Date(b.at));
 }
 function writeState(state){nativeSetItem.call(localStorage,STATE_KEY,JSON.stringify(state))}
+function writeLifecycle(patch={}){
+  const current=readJson(LIFECYCLE_KEY)||{};
+  nativeSetItem.call(localStorage,LIFECYCLE_KEY,JSON.stringify({...current,...patch}));
+}
 function ensureClientIds(state){
   let changed=false;
   state.checkins=Array.isArray(state.checkins)?state.checkins:[];
@@ -107,6 +114,24 @@ function renderWelcome(profile,state,userId){
   app.querySelector('[data-returning-checkin]')?.addEventListener('click',()=>{welcomeForUser='';routeTo('mood')});
   app.querySelector('[data-returning-skip]')?.addEventListener('click',()=>{welcomeForUser='';routeTo('app')});
   welcomeForUser=userId;
+}
+function shouldFastResume(state={}){
+  const {userId,token}=authContext();
+  if(!userId||!token)return false;
+  const savedStage=state?.stage;
+  if(!['app','support','mood'].includes(savedStage))return false;
+  const lastActive=Number(startupLifecycle.lastActiveAt||0);
+  const recentActivity=lastActive>0&&startupAt-lastActive<CHECKIN_INTERVAL_MS;
+  const latest=latestCheckin(state.checkins||[]);
+  const recentCheckin=latest&&startupAt-new Date(latest.at||latest.created_at).getTime()<CHECKIN_INTERVAL_MS;
+  return recentActivity||recentCheckin;
+}
+function fastResume(){
+  const state=readJson(STATE_KEY)||{};
+  if(!document.querySelector('.intro-reference-cta[data-stage]'))return false;
+  if(!shouldFastResume(state))return false;
+  const saved=['app','support','mood'].includes(state.stage)?state.stage:'app';
+  return routeTo(saved==='mood'?'app':saved);
 }
 
 // Preserve cloud-hydrated check-ins when the legacy app writes its in-memory state back
@@ -160,21 +185,12 @@ async function markOnboardingComplete(){
     justCompletedOnboarding=true;
   }catch(error){console.warn('Onboarding completion sync:',error.message)}
 }
-function restoreReload(state,profile){
-  if(navigationType()!=='reload')return false;
-  if(!profile?.onboarding_completed)return false;
-  if(!document.querySelector('.intro-reference-cta[data-stage]'))return false;
-  const saved=state?.stage;
-  const allowed=new Set(['app','support','mood','path','setup']);
-  return routeTo(allowed.has(saved)?saved:'app');
-}
 function applyLifecycle(profile,state,userId){
   const introVisible=!!document.querySelector('.intro-reference-cta[data-stage]');
   const moodVisible=!!document.querySelector('[data-mood]');
   if(!profile)return;
 
   if(!profile.onboarding_completed){
-    // A new account keeps the original one-time flow: Begin Journey -> path -> setup -> mood.
     if(introVisible){
       const saved=state?.stage;
       routeTo(['path','setup','mood'].includes(saved)?saved:'path');
@@ -183,15 +199,18 @@ function applyLifecycle(profile,state,userId){
   }
 
   if(justCompletedOnboarding&&moodVisible){
-    // The first mood check after setup is part of onboarding, not a returning-user prompt.
     justCompletedOnboarding=false;
     return;
   }
 
-  if(restoreReload(state,profile))return;
+  // If Reclaim was active less than two hours ago, this is a resume/refresh, not a new
+  // check-in opportunity. Restore the current experience without showing onboarding.
+  const lastActive=Number(startupLifecycle.lastActiveAt||0);
+  if(introVisible&&lastActive>0&&startupAt-lastActive<CHECKIN_INTERVAL_MS){
+    routeTo(['app','support'].includes(state?.stage)?state.stage:'app');
+    return;
+  }
 
-  // Do not interrupt someone who is already using the app. The interval rule is only
-  // evaluated on a genuine return/login, never because the page re-rendered.
   if(!introVisible&&!moodVisible)return;
 
   const due=checkinIsDue(state.checkins||[]);
@@ -228,8 +247,6 @@ async function syncCheckins(){
         note:item.note?String(item.note).slice(0,500):null,
         created_at:safeDate(item.at)
       }));
-      // Check-ins are append-only. Ignore duplicate client IDs rather than updating them,
-      // so the browser only needs the SELECT + INSERT privileges intentionally granted.
       await request('/rest/v1/daily_checkins?on_conflict=user_id,client_id',{
         method:'POST',
         headers:{Prefer:'resolution=ignore-duplicates,return=minimal'},
@@ -252,11 +269,18 @@ function schedule(delay=180){
   clearTimeout(scheduled);
   scheduled=setTimeout(syncCheckins,delay);
 }
+function markActive(){
+  if(document.hidden)return;
+  const {userId}=authContext();
+  if(userId)writeLifecycle({userId,lastActiveAt:Date.now()});
+}
 
 document.addEventListener('click',event=>{
+  markActive();
   if(event.target.closest('[data-mood], [data-quick-mood]'))setTimeout(()=>schedule(0),0);
 },false);
 document.addEventListener('submit',event=>{
+  markActive();
   if(event.target?.id==='auth-form')setTimeout(()=>schedule(350),0);
   if(event.target?.id==='setup-form'){
     completingOnboarding=true;
@@ -267,8 +291,20 @@ document.addEventListener('submit',event=>{
     },500);
   }
 },false);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(0)});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    const {userId}=authContext();
+    if(userId)writeLifecycle({userId,lastActiveAt:Date.now()});
+  }else{
+    markActive();
+    schedule(0);
+  }
+});
 window.addEventListener('online',()=>schedule(0));
+window.addEventListener('pagehide',()=>{
+  const {userId}=authContext();
+  if(userId)writeLifecycle({userId,lastActiveAt:Date.now()});
+});
 
 const app=document.querySelector('#app');
 if(app)new MutationObserver(()=>{
@@ -279,4 +315,7 @@ if(app)new MutationObserver(()=>{
   if(completingOnboarding&&document.querySelector('[data-mood]'))schedule(650);
 }).observe(app,{childList:true,subtree:true});
 
+fastResume();
+markActive();
+setInterval(markActive,ACTIVE_HEARTBEAT_MS);
 schedule(250);
