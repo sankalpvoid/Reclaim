@@ -17,13 +17,12 @@ let lastAttempt=0;
 let lastUser='';
 let routeBridge=document.querySelector('.intro-reference-cta[data-stage]');
 let completingOnboarding=false;
-let justCompletedOnboarding=false;
 let welcomeForUser='';
 
 function readJson(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function safeDate(value){const date=new Date(value||0);return Number.isFinite(date.getTime())?date.toISOString():new Date().toISOString()}
 function localDay(value){const date=new Date(value||Date.now());if(!Number.isFinite(date.getTime()))return '';const pad=n=>String(n).padStart(2,'0');return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`}
-function escapeHtml(value=''){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[char]))}
+function escapeHtml(value=''){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]))}
 function decodeSub(token=''){
   try{
     const payload=token.split('.')[1];
@@ -115,9 +114,10 @@ function renderWelcome(profile,state,userId){
   app.querySelector('[data-returning-skip]')?.addEventListener('click',()=>{welcomeForUser='';routeTo('app')});
   welcomeForUser=userId;
 }
+function startupBelongsTo(userId){return Boolean(userId&&startupLifecycle.userId===userId)}
 function shouldFastResume(state={}){
   const {userId,token}=authContext();
-  if(!userId||!token)return false;
+  if(!userId||!token||!startupBelongsTo(userId))return false;
   const savedStage=state?.stage;
   if(!['app','support','mood'].includes(savedStage))return false;
   const lastActive=Number(startupLifecycle.lastActiveAt||0);
@@ -128,6 +128,7 @@ function shouldFastResume(state={}){
 }
 function fastResume(){
   const state=readJson(STATE_KEY)||{};
+  if(window.__reclaimReloadStage)return false;
   if(!document.querySelector('.intro-reference-cta[data-stage]'))return false;
   if(!shouldFastResume(state))return false;
   const saved=['app','support','mood'].includes(state.stage)?state.stage:'app';
@@ -147,7 +148,21 @@ Storage.prototype.setItem=function(key,value){
   return nativeSetItem.call(this,key,value);
 };
 
-async function request(path,options={}){
+async function refreshAuthSession(){
+  const session=readJson(SESSION_KEY)||{};
+  if(!session.refresh_token)throw new Error('No refresh token');
+  const response=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
+    method:'POST',
+    headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({refresh_token:session.refresh_token})
+  });
+  const text=await response.text();
+  let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+  if(!response.ok||!data?.access_token)throw new Error(data?.message||data?.error_description||'Session refresh failed');
+  nativeSetItem.call(localStorage,SESSION_KEY,JSON.stringify({...session,...data}));
+  return data.access_token;
+}
+async function request(path,options={},retried=false){
   const {token}=authContext();
   if(!token)throw new Error('No signed-in session');
   const response=await fetch(`${SUPABASE_URL}${path}`,{
@@ -156,7 +171,12 @@ async function request(path,options={}){
   });
   const text=await response.text();
   let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!response.ok)throw new Error(data?.message||data?.hint||data?.error||`Check-in sync failed (${response.status})`);
+  if(!response.ok){
+    if(!retried&&(response.status===401||response.status===403)){
+      try{await refreshAuthSession();return request(path,options,true)}catch{}
+    }
+    throw new Error(data?.message||data?.hint||data?.error||`Check-in sync failed (${response.status})`);
+  }
   return data;
 }
 
@@ -175,15 +195,16 @@ async function fetchLifecycleProfile(userId){
 }
 async function markOnboardingComplete(){
   const {userId}=authContext();
-  if(!userId)return;
+  if(!userId)return false;
   try{
     await request(`/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`,{
       method:'PATCH',
       headers:{Prefer:'return=minimal'},
       body:JSON.stringify({onboarding_completed:true})
     });
-    justCompletedOnboarding=true;
-  }catch(error){console.warn('Onboarding completion sync:',error.message)}
+    writeLifecycle({userId,onboardingMoodPending:false,onboardingMoodAnsweredAt:null,onboardingCompletedAt:Date.now()});
+    return true;
+  }catch(error){console.warn('Onboarding completion sync:',error.message);return false}
 }
 function applyLifecycle(profile,state,userId){
   const introVisible=!!document.querySelector('.intro-reference-cta[data-stage]');
@@ -191,22 +212,23 @@ function applyLifecycle(profile,state,userId){
   if(!profile)return;
 
   if(!profile.onboarding_completed){
-    if(introVisible){
+    const lifecycle=readJson(LIFECYCLE_KEY)||{};
+    const pendingMood=Boolean(lifecycle.userId===userId&&lifecycle.onboardingMoodPending);
+    if(introVisible||moodVisible){
       const saved=state?.stage;
-      routeTo(['path','setup','mood'].includes(saved)?saved:'path');
+      const target=saved==='setup'?'setup':saved==='path'?'path':(saved==='mood'&&pendingMood?'mood':'path');
+      if(!(moodVisible&&target==='mood'))routeTo(target);
     }
     return;
   }
 
-  if(justCompletedOnboarding&&moodVisible){
-    justCompletedOnboarding=false;
-    return;
-  }
+  // A literal browser reload is restored by session-bootstrap.js and should not be
+  // reinterpreted as a return/check-in opportunity.
+  if(window.__reclaimReloadStage)return;
 
-  // If Reclaim was active less than two hours ago, this is a resume/refresh, not a new
-  // check-in opportunity. Restore the current experience without showing onboarding.
   const lastActive=Number(startupLifecycle.lastActiveAt||0);
-  if(introVisible&&lastActive>0&&startupAt-lastActive<CHECKIN_INTERVAL_MS){
+  const recentActivity=startupBelongsTo(userId)&&lastActive>0&&startupAt-lastActive<CHECKIN_INTERVAL_MS;
+  if((introVisible||moodVisible)&&recentActivity){
     routeTo(['app','support'].includes(state?.stage)?state.stage:'app');
     return;
   }
@@ -232,6 +254,11 @@ async function syncCheckins(){
 
     const [remote,profile]=await Promise.all([fetchCloudCheckins(userId),fetchLifecycleProfile(userId)]);
     cloudCheckins=remote;
+
+    const lifecycle=readJson(LIFECYCLE_KEY)||{};
+    if(profile&&!profile.onboarding_completed&&lifecycle.userId===userId&&lifecycle.onboardingMoodAnsweredAt){
+      if(await markOnboardingComplete())profile.onboarding_completed=true;
+    }
 
     let current=readJson(STATE_KEY)||state;
     current.checkins=mergeCheckins(Array.isArray(current.checkins)?current.checkins:[],cloudCheckins);
@@ -277,15 +304,26 @@ function markActive(){
 
 document.addEventListener('click',event=>{
   markActive();
-  if(event.target.closest('[data-mood], [data-quick-mood]'))setTimeout(()=>schedule(0),0);
+  const moodButton=event.target.closest('[data-mood]');
+  const quickMood=event.target.closest('[data-quick-mood]');
+  if(moodButton||quickMood)setTimeout(()=>schedule(0),0);
+  if(moodButton){
+    const {userId}=authContext();
+    const lifecycle=readJson(LIFECYCLE_KEY)||{};
+    if(userId&&lifecycle.userId===userId&&lifecycle.onboardingMoodPending){
+      writeLifecycle({userId,onboardingMoodAnsweredAt:Date.now()});
+      setTimeout(async()=>{await markOnboardingComplete();schedule(0)},0);
+    }
+  }
 },false);
 document.addEventListener('submit',event=>{
   markActive();
   if(event.target?.id==='auth-form')setTimeout(()=>schedule(350),0);
   if(event.target?.id==='setup-form'){
     completingOnboarding=true;
-    setTimeout(async()=>{
-      await markOnboardingComplete();
+    const {userId}=authContext();
+    if(userId)writeLifecycle({userId,onboardingMoodPending:true,onboardingMoodAnsweredAt:null});
+    setTimeout(()=>{
       completingOnboarding=false;
       schedule(0);
     },500);
