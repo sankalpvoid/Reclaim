@@ -45,6 +45,7 @@ html[data-theme="light"] .ring{background:conic-gradient(var(--purple) var(--pro
 html[data-theme="light"] .ring:before{background:#f8f6fc}
 
 html[data-theme="light"] .checkin-trigger{background:#fff!important;border-color:#d9d2e3;color:#6236dc!important;box-shadow:0 5px 16px rgba(42,24,77,.07)}
+html[data-theme="light"] .home-screen{background:#f8f6fc}
 html[data-theme="light"] .stat-icon>.app-icon{color:#4f485c}
 html[data-theme="light"] .hero-runner{background:#f8f6fc!important;border-color:#e0dae8!important;box-shadow:none!important}
 html[data-theme="light"] .runner-art-dark{display:none}
