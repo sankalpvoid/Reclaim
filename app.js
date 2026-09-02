@@ -44,7 +44,7 @@ function forYouCards(){
   if(events.length>=3){const recent=events.slice(-3).map(event=>new Date(event.at).getTime());if(nowMs-recent[2]<3*36e5&&recent[2]-recent[0]<=2*36e5)act.push(card('Act now','warning','A tight cluster just appeared','Three cigarettes were logged close together. A short interruption now may help break the pattern.','start-reset','START A RESET'))}
   if(mode==='reduce'){
     const remaining=Math.max(0,(+profile.dailyTarget||0)-stats.todayCount);
-    if(remaining<=2&&remaining>0)act.push(card('Act now','track_changes',`${remaining} cigarette${remaining===1?'':'s'} left in today’s target`,`You are close to the limit you chose for today.','view-today','VIEW TODAY'));
+    if(remaining<=2&&remaining>0)act.push(card('Act now','track_changes',`${remaining} cigarette${remaining===1?'':'s'} left in today’s target`,'You are close to the limit you chose for today.','view-today','VIEW TODAY'));
   }
   if(mode!=='quit'){
     const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);const key=localDateKey(yesterday),confirmed=state.dayConfirmations?.[key];
