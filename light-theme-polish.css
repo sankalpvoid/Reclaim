@@ -1,0 +1,171 @@
+/* Light theme consistency pass — additive overrides only. Dark mode remains untouched. */
+
+html[data-theme="light"] .momentum-screen,
+html[data-theme="light"] .dream-screen,
+html[data-theme="light"] .more-screen,
+html[data-theme="light"] .tracking-insights{
+  background:#f8f6fc;
+}
+
+/* Momentum: replace dark/neon surfaces with the same soft elevated system used elsewhere. */
+html[data-theme="light"] .momentum-screen .neon-haze{
+  background:radial-gradient(circle,rgba(108,60,255,.10),transparent 66%);
+  filter:blur(28px);
+}
+html[data-theme="light"] .momentum-screen .tabs{border-color:#ddd7e5}
+html[data-theme="light"] .momentum-screen .tabs button.active{color:#241b34}
+html[data-theme="light"] .momentum-intro p,
+html[data-theme="light"] .setback-note,
+html[data-theme="light"] .achievement-summary p{color:#6b6475}
+html[data-theme="light"] .attempt-hero,
+html[data-theme="light"] .record-card,
+html[data-theme="light"] .resilience-grid article,
+html[data-theme="light"] .achievement-card{
+  background:#fff;
+  border-color:#ddd7e5;
+  color:#241b34;
+  box-shadow:0 8px 22px rgba(42,24,77,.055);
+}
+html[data-theme="light"] .attempt-story-icon,
+html[data-theme="light"] .record-icon{
+  background:#eee7ff;
+  color:#6335da;
+  box-shadow:none;
+}
+html[data-theme="light"] .record-card:last-child .record-icon{
+  background:#f8eaf1;
+  color:#b24d78;
+}
+html[data-theme="light"] .record-chase,
+html[data-theme="light"] .next-checkpoint,
+html[data-theme="light"] .momentum-screen .neon-card{
+  background:#fff;
+  border-color:#ddd7e5;
+  box-shadow:0 8px 22px rgba(42,24,77,.055);
+}
+html[data-theme="light"] .achievement-card{opacity:1}
+html[data-theme="light"] .achievement-card.locked{opacity:.58;background:#f3f0f6}
+html[data-theme="light"] .achievement-icon{
+  background:#f3eff7;
+  border-color:#d7d0df;
+  color:#847d8e;
+}
+html[data-theme="light"] .achievement-card.unlocked{
+  border-color:#bca9ed;
+  background:linear-gradient(135deg,#fff,#f5f0ff);
+  box-shadow:0 8px 22px rgba(108,60,255,.08);
+}
+html[data-theme="light"] .achievement-card.unlocked .achievement-icon{
+  color:#fff;
+  background:linear-gradient(145deg,#7b4ff1,#5d2ed5);
+  border-color:#9c7df0;
+  box-shadow:0 6px 16px rgba(108,60,255,.20);
+}
+html[data-theme="light"] .momentum-screen .progress{background:#e5dfeb}
+
+/* Dreams: use one consistent white-card / lavender-accent vocabulary. */
+html[data-theme="light"] .dream-status{color:#6944ce}
+html[data-theme="light"] .goal-card,
+html[data-theme="light"] .dream-roadmap,
+html[data-theme="light"] .calendar,
+html[data-theme="light"] .savings-calendar,
+html[data-theme="light"] .empty-goals{
+  background:#fff;
+  border-color:#ddd7e5;
+  box-shadow:0 8px 22px rgba(42,24,77,.055);
+}
+html[data-theme="light"] .goal-card h2,
+html[data-theme="light"] .goal-meta strong,
+html[data-theme="light"] .dream-roadmap h2{color:#241b34}
+html[data-theme="light"] .goal-icon,
+html[data-theme="light"] .dream-roadmap header>span{
+  background:#eee7ff;
+  border-color:#d9cef2;
+  color:#6335da;
+}
+html[data-theme="light"] .goal-eta{
+  border-color:#e1dbe8;
+  color:#6b6475;
+}
+html[data-theme="light"] .dream-roadmap{
+  background:radial-gradient(circle at 85% 10%,rgba(108,60,255,.09),transparent 36%),#fff;
+}
+html[data-theme="light"] .roadmap-track{background:#e8e2ed}
+html[data-theme="light"] .roadmap-track i{background:#fff;border-color:#cfc6d8}
+html[data-theme="light"] .roadmap-track i.reached{background:#6c3cff;border-color:#9b7bed}
+html[data-theme="light"] .roadmap-track b{color:#736d7b}
+html[data-theme="light"] .roadmap-next{
+  background:#f5f0fd;
+  border-color:#ddd2ef;
+}
+html[data-theme="light"] .roadmap-arrival{color:#696274}
+html[data-theme="light"] .roadmap-arrival strong{color:#241b34}
+html[data-theme="light"] .calendar-grid button,
+html[data-theme="light"] .calendar-controls button,
+html[data-theme="light"] .calendar-today-link{color:#514a5b}
+
+/* Change pace / setup: remove leftover dark blocks and unify the journey icon. */
+html[data-theme="light"] .setup-mode{
+  background:#fff;
+  color:#241b34;
+  border-color:#ddd7e5;
+  box-shadow:0 8px 22px rgba(42,24,77,.055);
+}
+html[data-theme="light"] .setup-mode>span,
+html[data-theme="light"] .journey-setting .mood-icon{
+  background:#eee7ff;
+  color:#6335da;
+  border-color:#d9cef2;
+}
+html[data-theme="light"] .setup-mode small{color:#736b7d}
+html[data-theme="light"] .setup-mode strong{color:#241b34}
+html[data-theme="light"] .setup-mode button{
+  background:#f3effa;
+  color:#6335da;
+  border-color:#d9cef2;
+}
+html[data-theme="light"] .journey-setting{
+  background:#fff;
+  border-color:#ddd7e5;
+  color:#241b34;
+}
+
+/* Sidebar: the previous dark drawer broke the light-mode visual system. */
+html[data-theme="light"] .menu-overlay.open{background:rgba(35,26,49,.30)}
+html[data-theme="light"] .side-menu{
+  background:#fbf9fd;
+  border-right-color:#ddd6e5;
+  box-shadow:24px 0 70px rgba(42,24,77,.18);
+  color:#241b34;
+}
+html[data-theme="light"] .side-menu>header{border-bottom-color:#e2dce9}
+html[data-theme="light"] .side-menu header small{color:#77707f}
+html[data-theme="light"] .side-menu .icon-btn{color:#241b34}
+html[data-theme="light"] .side-menu nav button{color:#6f6878}
+html[data-theme="light"] .side-menu nav button:hover{
+  background:#f1ecf7;
+  color:#241b34;
+}
+html[data-theme="light"] .side-menu nav button.active{
+  color:#4f27c2;
+  background:linear-gradient(90deg,rgba(108,60,255,.12),rgba(108,60,255,.035));
+  box-shadow:inset 3px 0 #7144ee;
+}
+html[data-theme="light"] .side-menu nav i{
+  color:#6335da;
+  background:#eee7ff;
+}
+html[data-theme="light"] .side-menu nav b{color:#aaa2b2}
+html[data-theme="light"] .menu-footer{color:#77707f}
+
+/* Common detail cleanup for screens that still inherited hard-coded dark colors. */
+html[data-theme="light"] .meaningful-chart{border-color:#ddd7e5}
+html[data-theme="light"] .chart-value{color:#5f38c9}
+html[data-theme="light"] .pattern-chart,
+html[data-theme="light"] .pattern-note,
+html[data-theme="light"] .tracking-summary .card{
+  background:#fff;
+  border-color:#ddd7e5;
+  color:#241b34;
+}
+html[data-theme="light"] .source{color:#6d6677}
