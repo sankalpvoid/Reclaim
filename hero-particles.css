@@ -1,9 +1,0 @@
-.home-screen .hero-runner{isolation:isolate}
-.home-screen .hero-runner .runner-art-light{z-index:1}
-.reclaim-particle-field,.reclaim-hero-glow{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.reclaim-particle-field{z-index:2}
-.reclaim-hero-glow{z-index:0;background:radial-gradient(circle at 77% 39%,rgba(117,72,255,.22),rgba(117,72,255,.08) 20%,transparent 45%);filter:blur(5px);animation:reclaimGlowBreath 5.8s ease-in-out infinite}
-.reclaim-particle{position:absolute;left:var(--p-x);top:var(--p-y);width:var(--p-size);height:var(--p-size);border-radius:999px;background:rgba(109,63,246,var(--p-alpha));box-shadow:0 0 7px rgba(118,78,255,.62);opacity:0;transform:translate3d(0,0,0) scale(.7);animation:reclaimDriftLeft var(--p-duration) cubic-bezier(.2,.65,.35,1) var(--p-delay) forwards}
-@keyframes reclaimDriftLeft{0%{opacity:0;transform:translate3d(0,0,0) scale(.55)}12%{opacity:1}72%{opacity:.72}100%{opacity:0;transform:translate3d(calc(var(--p-drift) * -1),var(--p-rise),0) scale(.12)}}
-@keyframes reclaimGlowBreath{0%,100%{opacity:.58;transform:scale(.98)}50%{opacity:.94;transform:scale(1.04)}}
-@media(prefers-reduced-motion:reduce){.reclaim-particle-field,.reclaim-hero-glow{display:none!important}}
