@@ -53,7 +53,7 @@ html[data-theme="light"] .runner-art-light{display:block;mix-blend-mode:multiply
 html[data-theme="light"] .home-hero-copy{z-index:2}
 html[data-theme="light"] .home-days,html[data-theme="light"] .home-live-clock,html[data-theme="light"] .hero-message{color:#20172f}
 html[data-theme="light"] .hero-divider{background:#ddd6e5}
-html[data-theme="light"] .home-stats .card{background:#fff}
+html[data-theme="light"] .home-stats .stat.card{background:#fff;border-color:#ded8e8;box-shadow:0 10px 26px rgba(42,24,77,.07)}
 
 html[data-theme="light"] .appearance-icon{background:#eee7ff;color:#6335da}
 html[data-theme="light"] .theme-toggle{background:#ece7f2;border-color:#ddd6e5}
