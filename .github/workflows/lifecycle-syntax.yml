@@ -3,17 +3,17 @@ name: Lifecycle syntax
 on:
   pull_request:
     paths:
+      - 'auth-lifecycle.js'
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
-      - 'login-resume.js'
       - 'index.html'
   push:
     branches:
       - fix/data-foundation
     paths:
+      - 'auth-lifecycle.js'
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
-      - 'login-resume.js'
       - 'index.html'
 
 jobs:
@@ -26,6 +26,6 @@ jobs:
           node-version: '22'
       - name: Check lifecycle JavaScript syntax
         run: |
+          node --check auth-lifecycle.js
           node --check checkin-sync.js
           node --check session-bootstrap.js
-          node --check login-resume.js
