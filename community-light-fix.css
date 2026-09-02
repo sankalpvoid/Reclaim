@@ -1,4 +1,4 @@
-/* Community light-mode cleanup based on visual QA screenshots. Dark mode untouched. */
+/* Community light-mode cleanup based on visual QA screenshots. */
 html[data-theme="light"] .community-stats{
   background:#fff;
   border:1px solid #ddd7e5;
@@ -43,6 +43,27 @@ html[data-theme="light"] .avatar{
 }
 html[data-theme="light"] .post-more{color:#7d7586}
 
+/* Post/reply three-dot action sheet: remove leftover black slabs in light mode. */
+html[data-theme="light"] .community-action-sheet{color:#241b34}
+html[data-theme="light"] .community-action-sheet h2{color:#241b34}
+html[data-theme="light"] .community-action-sheet>button{
+  background:#fff;
+  color:#3d3548;
+  border:1px solid #ddd7e5;
+  box-shadow:0 7px 18px rgba(42,24,77,.04);
+}
+html[data-theme="light"] .community-action-sheet>button .app-icon{
+  color:#7044df;
+  font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+}
+html[data-theme="light"] .community-action-sheet>button:active{background:#f4effd}
+html[data-theme="light"] .community-action-sheet>button.danger-row{
+  background:#fff5f6;
+  border-color:#efc9ce;
+  color:#b83f4b;
+}
+html[data-theme="light"] .community-action-sheet>button.danger-row .app-icon{color:#d64d58}
+
 html[data-theme="light"] .community-safety{color:#241b34}
 html[data-theme="light"] .community-safety h2{color:#241b34}
 html[data-theme="light"] .safety-principles{display:grid;gap:10px}
@@ -52,7 +73,30 @@ html[data-theme="light"] .safety-principles span{
   color:#514a5b;
   box-shadow:0 7px 18px rgba(42,24,77,.04);
 }
-html[data-theme="light"] .safety-principles .app-icon{color:#7044df}
+
+/* Safety icons are intentionally solid badges in both themes, not empty rings. */
+.safety-principles span>.app-icon{
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  display:inline-grid;
+  place-items:center;
+  border-radius:14px;
+  border:1px solid rgba(139,103,255,.48);
+  background:linear-gradient(145deg,#7040ef,#5127bd);
+  color:#fff!important;
+  box-shadow:0 7px 18px rgba(108,60,255,.2);
+  font-variation-settings:'FILL' 1,'wght' 450,'GRAD' 0,'opsz' 24;
+}
+html[data-theme="dark"] .safety-principles span>.app-icon{
+  background:linear-gradient(145deg,#7d52f4,#5930c8);
+  border-color:#9374ef;
+  color:#fff!important;
+}
+html[data-theme="light"] .safety-principles span>.app-icon{
+  background:linear-gradient(145deg,#7546ef,#5a31cc);
+  border-color:#a88bf2;
+}
 html[data-theme="light"] .blocked-list h3{color:#77707f}
 html[data-theme="light"] .blocked-list p{color:#77707f}
 html[data-theme="light"] .blocked-list article{
