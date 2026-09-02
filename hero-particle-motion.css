@@ -1,44 +1,90 @@
-/* Live hero: preserve the production artwork and add an ambient particle stream above it. */
-.hero-runner{isolation:isolate}
-.hero-runner .hero-artwork{position:relative;z-index:0}
-.hero-runner .runner-art:not(.runner-particles){
+/* Live Home hero. Everything visual is absolutely contained inside the hero so
+   artwork or animation can never push the dashboard cards below it away. */
+.hero-runner{
+  position:relative!important;
+  isolation:isolate;
+  overflow:hidden!important;
+}
+.hero-runner .hero-artwork{
+  display:block!important;
+  position:absolute!important;
+  inset:0 0 auto 0!important;
+  width:100%!important;
+  height:196px!important;
+  max-height:196px!important;
+  overflow:hidden!important;
+  z-index:0!important;
+  pointer-events:none!important;
+}
+/* The embedded light image is intentionally retired. The stable PNG is reused
+   in both themes so a failed decorative asset can never become a layout box. */
+.hero-runner .runner-art-light,
+.hero-runner .runner-particles{
+  display:none!important;
+}
+.hero-runner .runner-art-dark,
+.hero-runner .runner-art-live{
+  display:block!important;
+  position:absolute!important;
+  z-index:0!important;
+  right:8px!important;
+  top:8px!important;
+  width:270px!important;
+  height:180px!important;
+  max-width:none!important;
+  max-height:180px!important;
+  object-fit:contain!important;
+  object-position:67% 50%!important;
+  opacity:.72;
   transform-origin:72% 55%;
-  will-change:transform,filter;
+  will-change:transform;
   animation:reclaim-hero-breathe 5.6s ease-in-out infinite;
-}
-.hero-runner .runner-art-dark{
-  object-position:67% 50%;
-  filter:saturate(.78) contrast(1.18) brightness(.92);
+  pointer-events:none!important;
   mix-blend-mode:screen;
-}
-.hero-runner .runner-art-light{
-  object-position:67% 50%;
+  filter:grayscale(1) saturate(.78) contrast(1.18) brightness(.92) drop-shadow(0 0 5px rgba(255,255,255,.16));
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 23%,#000 87%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,#000 23%,#000 87%,transparent 100%);
 }
 .live-hero-particles{
-  position:absolute;
-  inset:0;
-  z-index:1;
-  width:100%;
-  height:100%;
-  pointer-events:none;
-  overflow:hidden;
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  right:auto!important;
+  bottom:auto!important;
+  z-index:1!important;
+  max-height:196px!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
   mix-blend-mode:normal;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 93%,transparent 100%);
   mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 93%,transparent 100%);
 }
-.home-hero-copy{position:relative;z-index:2}
-@keyframes reclaim-hero-breathe{
-  0%,100%{transform:translate3d(0,0,0) scale(1);filter:brightness(.96)}
-  50%{transform:translate3d(0,-2px,0) scale(1.012);filter:brightness(1.045)}
+.home-hero-copy,
+.hero-runner .home-live-clock,
+.hero-runner .hero-divider,
+.hero-runner .hero-message{
+  position:relative;
+  z-index:2;
 }
-html[data-theme="light"] .hero-runner .runner-art-light{
+@keyframes reclaim-hero-breathe{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(0,-2px,0) scale(1.012)}
+}
+html[data-theme="light"] .hero-runner .runner-art-dark,
+html[data-theme="light"] .hero-runner .runner-art-live{
+  display:block!important;
+  opacity:.68;
   mix-blend-mode:multiply;
-  filter:saturate(.86) contrast(1.03);
+  filter:grayscale(1) invert(1) contrast(1.16) brightness(.74);
 }
 html[data-theme="light"] .live-hero-particles{filter:drop-shadow(0 0 3px rgba(104,56,243,.22))}
 html[data-theme="dark"] .live-hero-particles{filter:drop-shadow(0 0 4px rgba(158,127,255,.28))}
-@media(max-width:390px){.hero-runner .runner-art:not(.runner-particles){animation-duration:6.8s}}
+@media(max-width:390px){
+  .hero-runner .runner-art-dark,
+  .hero-runner .runner-art-live{animation-duration:6.8s}
+}
 @media(prefers-reduced-motion:reduce){
-  .hero-runner .runner-art:not(.runner-particles){animation:none!important}
+  .hero-runner .runner-art-dark,
+  .hero-runner .runner-art-live{animation:none!important}
   .live-hero-particles{display:none!important}
 }
