@@ -1,0 +1,42 @@
+/* Adds life to the existing hero artwork without moving the figure itself. */
+.hero-runner .runner-particles {
+  z-index: 1;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transform-origin: 68% 54%;
+}
+
+.hero-runner .runner-particles-near {
+  clip-path: polygon(0 3%, 64% 3%, 57% 100%, 0 100%);
+  animation: reclaim-particles-near 5.4s cubic-bezier(.22,.61,.36,1) infinite;
+}
+
+.hero-runner .runner-particles-far {
+  clip-path: polygon(0 12%, 50% 7%, 45% 94%, 0 100%);
+  animation: reclaim-particles-far 6.8s cubic-bezier(.22,.61,.36,1) -2.9s infinite;
+}
+
+@keyframes reclaim-particles-near {
+  0%, 12% { opacity: 0; transform: translate3d(2px, 1px, 0) scale(1); }
+  38% { opacity: .28; }
+  74% { opacity: .12; transform: translate3d(-13px, -3px, 0) scale(1.025); }
+  100% { opacity: 0; transform: translate3d(-22px, -7px, 0) scale(1.045); }
+}
+
+@keyframes reclaim-particles-far {
+  0%, 16% { opacity: 0; transform: translate3d(1px, 0, 0) scale(1); }
+  42% { opacity: .2; }
+  78% { opacity: .08; transform: translate3d(-17px, 4px, 0) scale(1.035); }
+  100% { opacity: 0; transform: translate3d(-28px, 7px, 0) scale(1.06); }
+}
+
+html[data-theme="light"] .hero-runner .runner-particles {
+  mix-blend-mode: multiply;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-runner .runner-particles {
+    display: none !important;
+    animation: none !important;
+  }
+}
