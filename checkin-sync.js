@@ -7,6 +7,8 @@ const VALID_MOODS=new Set(['great','okay','struggling','craving']);
 const CHECKIN_INTERVAL_MS=2*60*60*1000;
 const DAILY_PROMPT_CAP=5;
 const ACTIVE_HEARTBEAT_MS=30*1000;
+const RETRY_INITIAL_MS=1500;
+const RETRY_MAX_MS=60000;
 const nativeSetItem=Storage.prototype.setItem;
 const startupAt=Date.now();
 const startupLifecycle=readJson(LIFECYCLE_KEY)||{};
@@ -14,6 +16,7 @@ let cloudCheckins=[];
 let syncing=false;
 let scheduled=null;
 let lastAttempt=0;
+let retryDelay=RETRY_INITIAL_MS;
 let lastUser='';
 let routeBridge=document.querySelector('.intro-reference-cta[data-stage]');
 let completingOnboarding=false;
@@ -135,8 +138,6 @@ function fastResume(){
   return routeTo(saved==='mood'?'app':saved);
 }
 
-// Preserve cloud-hydrated check-ins when the legacy app writes its in-memory state back
-// to localStorage. This can be removed once check-ins are integrated directly into app.js.
 Storage.prototype.setItem=function(key,value){
   if(this===localStorage&&key===STATE_KEY&&cloudCheckins.length){
     try{
@@ -193,16 +194,26 @@ async function fetchLifecycleProfile(userId){
   const rows=await request(`/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=id,display_name,onboarding_completed,journey_mode,quit_date`,{method:'GET'});
   return Array.isArray(rows)?rows[0]||null:null;
 }
+function onboardingMoodConfirmed(userId){
+  const lifecycle=readJson(LIFECYCLE_KEY)||{};
+  if(lifecycle.userId!==userId||!lifecycle.onboardingMoodAnsweredAt)return false;
+  if(lifecycle.onboardingMoodClientId){
+    return cloudCheckins.some(item=>item.clientId===lifecycle.onboardingMoodClientId&&item.cloudId);
+  }
+  const answeredAt=Number(lifecycle.onboardingMoodAnsweredAt||0);
+  if(!answeredAt)return false;
+  return cloudCheckins.some(item=>Math.abs(new Date(item.at).getTime()-answeredAt)<=2*60*1000);
+}
 async function markOnboardingComplete(){
   const {userId}=authContext();
-  if(!userId)return false;
+  if(!userId||!onboardingMoodConfirmed(userId))return false;
   try{
     await request(`/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`,{
       method:'PATCH',
       headers:{Prefer:'return=minimal'},
       body:JSON.stringify({onboarding_completed:true})
     });
-    writeLifecycle({userId,onboardingMoodPending:false,onboardingMoodAnsweredAt:null,onboardingCompletedAt:Date.now()});
+    writeLifecycle({userId,onboardingMoodPending:false,onboardingMoodAnsweredAt:null,onboardingMoodClientId:null,onboardingCompletedAt:Date.now()});
     return true;
   }catch(error){console.warn('Onboarding completion sync:',error.message);return false}
 }
@@ -222,8 +233,6 @@ function applyLifecycle(profile,state,userId){
     return;
   }
 
-  // A literal browser reload is restored by session-bootstrap.js and should not be
-  // reinterpreted as a return/check-in opportunity.
   if(window.__reclaimReloadStage)return;
 
   const lastActive=Number(startupLifecycle.lastActiveAt||0);
@@ -240,13 +249,20 @@ function applyLifecycle(profile,state,userId){
   renderWelcome(profile,state,userId);
 }
 
+function hasUnsyncedWork(userId){
+  const state=readJson(STATE_KEY)||{};
+  const pendingCheckin=(state.checkins||[]).some(item=>VALID_MOODS.has(item?.mood)&&item.clientId&&!item.cloudId);
+  const lifecycle=readJson(LIFECYCLE_KEY)||{};
+  const pendingOnboarding=lifecycle.userId===userId&&Boolean(lifecycle.onboardingMoodAnsweredAt)&&!lifecycle.onboardingCompletedAt;
+  return pendingCheckin||pendingOnboarding;
+}
 async function syncCheckins(){
   const now=Date.now();
   if(syncing)return;
   if(now-lastAttempt<1200){schedule(Math.max(80,1250-(now-lastAttempt)));return}
   lastAttempt=now;
   const {userId,token}=authContext();
-  if(!userId||!token){lastUser='';cloudCheckins=[];welcomeForUser='';return}
+  if(!userId||!token){lastUser='';cloudCheckins=[];welcomeForUser='';retryDelay=RETRY_INITIAL_MS;return}
   syncing=true;
   try{
     const state=readJson(STATE_KEY)||{};
@@ -254,11 +270,6 @@ async function syncCheckins(){
 
     const [remote,profile]=await Promise.all([fetchCloudCheckins(userId),fetchLifecycleProfile(userId)]);
     cloudCheckins=remote;
-
-    const lifecycle=readJson(LIFECYCLE_KEY)||{};
-    if(profile&&!profile.onboarding_completed&&lifecycle.userId===userId&&lifecycle.onboardingMoodAnsweredAt){
-      if(await markOnboardingComplete())profile.onboarding_completed=true;
-    }
 
     let current=readJson(STATE_KEY)||state;
     current.checkins=mergeCheckins(Array.isArray(current.checkins)?current.checkins:[],cloudCheckins);
@@ -284,11 +295,21 @@ async function syncCheckins(){
       current.checkins=mergeCheckins(Array.isArray(current.checkins)?current.checkins:[],cloudCheckins);
       writeState(current);
     }
+
+    if(profile&&!profile.onboarding_completed&&onboardingMoodConfirmed(userId)){
+      if(await markOnboardingComplete())profile.onboarding_completed=true;
+    }
+
+    retryDelay=RETRY_INITIAL_MS;
     lastUser=userId;
     pulseConsumers();
     applyLifecycle(profile,current,userId);
   }catch(error){
     if(!/daily_checkins|schema cache|PGRST|No signed-in session|JWT|token/i.test(error.message||''))console.warn('Daily check-in sync:',error.message);
+    if(hasUnsyncedWork(userId)){
+      schedule(retryDelay);
+      retryDelay=Math.min(RETRY_MAX_MS,retryDelay*2);
+    }
   }finally{syncing=false}
 }
 
@@ -311,8 +332,17 @@ document.addEventListener('click',event=>{
     const {userId}=authContext();
     const lifecycle=readJson(LIFECYCLE_KEY)||{};
     if(userId&&lifecycle.userId===userId&&lifecycle.onboardingMoodPending){
-      writeLifecycle({userId,onboardingMoodAnsweredAt:Date.now()});
-      setTimeout(async()=>{await markOnboardingComplete();schedule(0)},0);
+      setTimeout(()=>{
+        const state=readJson(STATE_KEY)||{};
+        if(ensureClientIds(state))writeState(state);
+        const newest=latestCheckin(state.checkins||[]);
+        writeLifecycle({
+          userId,
+          onboardingMoodAnsweredAt:Date.now(),
+          onboardingMoodClientId:newest?.clientId||null
+        });
+        schedule(0);
+      },0);
     }
   }
 },false);
@@ -322,7 +352,7 @@ document.addEventListener('submit',event=>{
   if(event.target?.id==='setup-form'){
     completingOnboarding=true;
     const {userId}=authContext();
-    if(userId)writeLifecycle({userId,onboardingMoodPending:true,onboardingMoodAnsweredAt:null});
+    if(userId)writeLifecycle({userId,onboardingMoodPending:true,onboardingMoodAnsweredAt:null,onboardingMoodClientId:null,onboardingCompletedAt:null});
     setTimeout(()=>{
       completingOnboarding=false;
       schedule(0);
@@ -338,7 +368,7 @@ document.addEventListener('visibilitychange',()=>{
     schedule(0);
   }
 });
-window.addEventListener('online',()=>schedule(0));
+window.addEventListener('online',()=>{retryDelay=RETRY_INITIAL_MS;schedule(0)});
 window.addEventListener('pagehide',()=>{
   const {userId}=authContext();
   if(userId)writeLifecycle({userId,lastActiveAt:Date.now()});
