@@ -1,0 +1,28 @@
+name: Lifecycle syntax
+
+on:
+  pull_request:
+    paths:
+      - 'checkin-sync.js'
+      - 'session-bootstrap.js'
+      - 'index.html'
+  push:
+    branches:
+      - fix/data-foundation
+    paths:
+      - 'checkin-sync.js'
+      - 'session-bootstrap.js'
+      - 'index.html'
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check lifecycle JavaScript syntax
+        run: |
+          node --check checkin-sync.js
+          node --check session-bootstrap.js
