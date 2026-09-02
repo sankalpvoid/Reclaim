@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
+    <script>
+      (() => {
+        const saved = localStorage.getItem('reclaim-theme-v1');
+        const theme = saved === 'light' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+        document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#f8f6fc' : '#000000';
+      })();
+    </script>
     <meta name="description" content="Reclaim — a calm, evidence-informed smoke-free companion." />
     <title>Reclaim</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,10 +24,11 @@
     <link rel="stylesheet" href="personalized-insights.css?v=recovery-1" />
     <link rel="stylesheet" href="name-personalization.css?v=recovery-1" />
     <link rel="stylesheet" href="value-refinements.css?v=ux-1" />
+    <link rel="stylesheet" href="light-theme.css?v=light-1" />
   </head>
   <body>
     <div id="app" aria-live="polite"></div>
-    <script type="module" src="app.js?v=recovery-1"></script>
+    <script type="module" src="app.js?v=light-1"></script>
     <script src="personalized-insights.js?v=recovery-1" defer></script>
     <script type="module" src="name-personalization.js?v=recovery-1"></script>
     <script type="module" src="analytics.js?v=analytics-1"></script>
