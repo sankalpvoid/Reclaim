@@ -43,6 +43,8 @@ function normalizeLifecycleOwner(userId){
 function clickStage(stage){
   const bridge=document.querySelector('.intro-reference-cta[data-stage]');
   if(!bridge)return false;
+  window.__reclaimReloadStage=stage;
+  window.__reclaimReloadRestoredAt=Date.now();
   bridge.dataset.stage=stage;
   bridge.click();
   document.dispatchEvent(new CustomEvent('reclaim:reload-restored',{detail:{stage}}));
