@@ -1,0 +1,80 @@
+/* Community light-mode cleanup based on visual QA screenshots. Dark mode untouched. */
+html[data-theme="light"] .community-stats{
+  background:#fff;
+  border:1px solid #ddd7e5;
+  box-shadow:0 8px 22px rgba(42,24,77,.045);
+}
+html[data-theme="light"] .community-stats span{background:transparent;border-color:#e3dde9}
+html[data-theme="light"] .community-stats strong{color:#241b34}
+html[data-theme="light"] .community-stats small{color:#77707f}
+
+html[data-theme="light"] .feed-post{
+  background:#fff!important;
+  border-color:#ddd7e5!important;
+  color:#241b34;
+  box-shadow:0 8px 22px rgba(42,24,77,.045);
+}
+html[data-theme="light"] .feed-post .post-author strong{color:#241b34}
+html[data-theme="light"] .feed-post .post-meta,
+html[data-theme="light"] .feed-post p{color:#6f6878}
+html[data-theme="light"] .feed-post .topic-pill{
+  background:#f4f0f8;
+  border-color:#d7cedf;
+  color:#655e6d;
+}
+html[data-theme="light"] .feed-post footer{border-color:#e1dbe8}
+html[data-theme="light"] .feed-post footer button,
+html[data-theme="light"] .cheer-button,
+html[data-theme="light"] .reply-preview,
+html[data-theme="light"] .save-post{
+  background:#f7f4fb!important;
+  border-color:#ddd7e5!important;
+  color:#625b6d!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .feed-post footer button:hover{
+  background:#f0eaff!important;
+  color:#5530c2!important;
+}
+html[data-theme="light"] .avatar{
+  background:#eee7ff;
+  border-color:#8c68e8;
+  color:#5630bd;
+}
+html[data-theme="light"] .post-more{color:#7d7586}
+
+html[data-theme="light"] .community-safety{color:#241b34}
+html[data-theme="light"] .community-safety h2{color:#241b34}
+html[data-theme="light"] .safety-principles{display:grid;gap:10px}
+html[data-theme="light"] .safety-principles span{
+  background:#fff;
+  border:1px solid #ddd7e5;
+  color:#514a5b;
+  box-shadow:0 7px 18px rgba(42,24,77,.04);
+}
+html[data-theme="light"] .safety-principles .app-icon{color:#7044df}
+html[data-theme="light"] .blocked-list h3{color:#77707f}
+html[data-theme="light"] .blocked-list p{color:#77707f}
+html[data-theme="light"] .blocked-list article{
+  background:#fff;
+  border-color:#ddd7e5;
+  color:#241b34;
+}
+html[data-theme="light"] .blocked-list article button{
+  background:#f3effa;
+  color:#6335da;
+  border-color:#d9cef2;
+}
+html[data-theme="light"] .moderator-entry{
+  background:#fff;
+  border-color:#ddd7e5;
+  color:#241b34;
+}
+
+/* Keep the light community language consistent: lavender accents, never black slabs. */
+html[data-theme="light"] .community-actions>button,
+html[data-theme="light"] .community-view-tabs,
+html[data-theme="light"] .stage-selector button,
+html[data-theme="light"] .community-filter button{
+  box-shadow:none;
+}
