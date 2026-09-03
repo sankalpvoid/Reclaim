@@ -16,6 +16,7 @@ on:
       - feat/welcome-back-flow
       - feat/manual-mood-checkin
       - fix/cloud-hydration
+      - fix/startup-state-ownership
     paths:
       - 'auth-lifecycle.js'
       - 'welcome-back.js'
