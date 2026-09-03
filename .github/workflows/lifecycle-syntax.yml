@@ -1,17 +1,19 @@
-name: Lifecycle syntax
+name: Foundation checks
 
 on:
   pull_request:
     paths:
+      - 'app.js'
       - 'auth-lifecycle.js'
       - 'welcome-back.js'
       - 'checkin-sync.js'
-      - 'session-bootstrap.js'
       - 'manual-checkin.js'
       - 'cloud-bootstrap.js'
       - 'behavior-model.js'
       - 'behavior-events.js'
       - 'index.html'
+      - 'tests/foundation-regression.mjs'
+      - '.github/workflows/lifecycle-syntax.yml'
   push:
     branches:
       - fix/data-foundation
@@ -20,32 +22,38 @@ on:
       - fix/cloud-hydration
       - fix/startup-state-ownership
       - fix/behavior-event-model
+      - chore/foundation-final-cleanup
     paths:
+      - 'app.js'
       - 'auth-lifecycle.js'
       - 'welcome-back.js'
       - 'checkin-sync.js'
-      - 'session-bootstrap.js'
       - 'manual-checkin.js'
       - 'cloud-bootstrap.js'
       - 'behavior-model.js'
       - 'behavior-events.js'
       - 'index.html'
+      - 'tests/foundation-regression.mjs'
+      - '.github/workflows/lifecycle-syntax.yml'
 
 jobs:
-  syntax:
+  foundation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check lifecycle JavaScript syntax
+      - name: Check foundation JavaScript syntax
         run: |
+          node --check app.js
           node --check auth-lifecycle.js
           node --check welcome-back.js
           node --check checkin-sync.js
-          node --check session-bootstrap.js
           node --check manual-checkin.js
           node --check cloud-bootstrap.js
           node --check behavior-model.js
           node --check behavior-events.js
+          node --check tests/foundation-regression.mjs
+      - name: Run foundation regression tests
+        run: node --test tests/foundation-regression.mjs
