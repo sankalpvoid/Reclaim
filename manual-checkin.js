@@ -1,5 +1,7 @@
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
+const SNAPSHOT_KEY='reclaim-page-skeleton-v1';
+const SKIP_SNAPSHOT_ONCE_KEY='reclaim-skip-snapshot-once';
 const BUTTON_ATTR='data-manual-mood-checkin';
 const ORIGINAL_HTML_ATTR='data-original-for-you-html';
 
@@ -15,6 +17,11 @@ function isDashboardHome(){
 
 function openMoodCheckin(){
   const state=readJson(STATE_KEY)||{};
+  // The current DOM is still Home until reload begins. Prevent pagehide from saving that
+  // stale Home DOM under the new mood route, otherwise the next load gets a Home-shaped
+  // snapshot while the actual mood screen is resolving.
+  sessionStorage.setItem(SKIP_SNAPSHOT_ONCE_KEY,'1');
+  localStorage.removeItem(SNAPSHOT_KEY);
   localStorage.setItem(STATE_KEY,JSON.stringify({...state,stage:'mood',view:'home'}));
   location.reload();
 }
