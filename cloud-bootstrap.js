@@ -40,6 +40,10 @@ async function request(path,{retry=true}={}){
   throw new Error(message);
 }
 
+function blankProfile(){
+  return {name:'',journeyMode:'quit',quitAt:new Date().toISOString(),cigarettesPerDay:20,dailyTarget:15,pricePerPack:300,cigarettesPerPack:20,minutesPerCigarette:11,country:'IN',currency:'₹',currencyCode:'INR',attemptNumber:1,bestStreakSeconds:0};
+}
+
 function mapProfile(current,row){
   if(!row)return current;
   return {
@@ -76,6 +80,7 @@ async function bootstrap(){
   const sameOwner=!state.cloudOwnerId||state.cloudOwnerId===user.id;
   const localCravings=sameOwner?(state.cravings||[]).filter(item=>!item.cloudId):[];
   const localSmoking=sameOwner?(state.smokingEvents||[]).filter(item=>!item.cloudId):[];
+  const localCheckins=sameOwner?(state.checkins||[]):[];
 
   const jobs={
     profile:request(`/rest/v1/profiles?id=eq.${user.id}&select=*`),
@@ -88,9 +93,11 @@ async function bootstrap(){
   const names=Object.keys(jobs);
   const settled=await Promise.allSettled(Object.values(jobs));
   const result=Object.fromEntries(names.map((name,index)=>[name,settled[index]]));
-  const next={...state,cloudOwnerId:user.id};
+  const next=sameOwner
+    ? {...state,cloudOwnerId:user.id}
+    : {...state,cloudOwnerId:user.id,profile:blankProfile(),remoteMilestones:[],goals:[],cravings:[],smokingEvents:[],checkins:[]};
 
-  if(result.profile.status==='fulfilled')next.profile=mapProfile(state.profile,result.profile.value?.[0]);
+  if(result.profile.status==='fulfilled')next.profile=mapProfile(next.profile,result.profile.value?.[0]);
   if(result.health.status==='fulfilled')next.remoteMilestones=result.health.value||[];
   if(result.goals.status==='fulfilled')next.goals=(result.goals.value||[]).map(goal=>({id:goal.id,name:goal.name,target:+goal.target_amount}));
   if(result.cravings.status==='fulfilled'){
@@ -102,7 +109,10 @@ async function bootstrap(){
     next.smokingEvents=[...remote,...localSmoking].sort((a,b)=>new Date(a.at)-new Date(b.at));
   }
   if(result.checkins.status==='fulfilled'){
-    next.checkins=(result.checkins.value||[]).map(row=>({clientId:row.client_id,mood:row.mood,note:row.note||'',at:row.created_at}));
+    const remote=(result.checkins.value||[]).map(row=>({clientId:row.client_id,mood:row.mood,note:row.note||'',at:row.created_at}));
+    const remoteIds=new Set(remote.map(item=>item.clientId).filter(Boolean));
+    const pending=localCheckins.filter(item=>!item.clientId||!remoteIds.has(item.clientId));
+    next.checkins=[...remote,...pending].sort((a,b)=>new Date(a.at)-new Date(b.at));
   }
 
   const failures=names.filter((name,index)=>settled[index].status==='rejected');
