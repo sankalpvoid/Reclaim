@@ -1,6 +1,7 @@
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
-const CARD_ATTR='data-manual-mood-checkin';
+const BUTTON_ATTR='data-manual-mood-checkin';
+const ORIGINAL_HTML_ATTR='data-original-for-you-html';
 
 function readJson(key){
   try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}
@@ -18,53 +19,62 @@ function openMoodCheckin(){
   location.reload();
 }
 
-function cardMarkup(){
-  return `<aside class="manual-checkin-card" ${CARD_ATTR} aria-label="Mood check-in">
-    <div class="manual-checkin-icon" aria-hidden="true"><span class="material-symbols-rounded">favorite</span></div>
-    <div class="manual-checkin-copy">
-      <span class="manual-checkin-kicker">QUICK CHECK-IN</span>
-      <strong>How are you now?</strong>
-      <small>A few seconds helps Reclaim understand your day better.</small>
-    </div>
-    <button type="button" class="manual-checkin-action" data-manual-checkin-open aria-label="Check in with how you feel now">
-      <span>CHECK IN</span><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
-    </button>
-  </aside>`;
+function restoreForYou(button){
+  if(!button?.hasAttribute(ORIGINAL_HTML_ATTR))return;
+  const original=button.getAttribute(ORIGINAL_HTML_ATTR)||'';
+  button.innerHTML=original;
+  button.removeAttribute(ORIGINAL_HTML_ATTR);
+  button.removeAttribute(BUTTON_ATTR);
+  button.classList.remove('manual-checkin-button');
+  button.setAttribute('data-for-you','');
+  button.setAttribute('aria-label','Open For You');
+  button.removeAttribute('title');
 }
 
-function syncCard(){
+function syncButton(){
   const app=document.querySelector('#app');
   if(!app)return;
-  const existing=app.querySelector(`[${CARD_ATTR}]`);
+
+  const manual=app.querySelector(`[${BUTTON_ATTR}]`);
   if(!isDashboardHome()){
-    existing?.remove();
+    restoreForYou(manual);
     return;
   }
-  if(existing)return;
 
-  const hero=app.querySelector('.hero');
-  const screen=hero?.closest('.screen')||app.querySelector('.screen');
-  if(!screen)return;
+  const home=app.querySelector('.home-screen,.tracking-home');
+  const top=home?.querySelector('.topbar');
+  if(!top)return;
 
-  const holder=document.createElement('div');
-  holder.innerHTML=cardMarkup().trim();
-  const card=holder.firstElementChild;
-  if(hero)hero.insertAdjacentElement('beforebegin',card);
-  else screen.querySelector('.topbar')?.insertAdjacentElement('afterend',card) || screen.prepend(card);
-  card.querySelector('[data-manual-checkin-open]')?.addEventListener('click',openMoodCheckin);
+  const button=top.querySelector('.checkin-trigger.for-you-trigger');
+  if(!button)return;
+  if(button.hasAttribute(BUTTON_ATTR))return;
+
+  button.setAttribute(ORIGINAL_HTML_ATTR,button.innerHTML);
+  button.setAttribute(BUTTON_ATTR,'');
+  button.classList.add('manual-checkin-button');
+  button.removeAttribute('data-for-you');
+  button.setAttribute('aria-label','How are you now? Check in');
+  button.setAttribute('title','How are you now?');
+  button.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">mood</span>';
 }
 
 let queued=false;
 function queueSync(){
   if(queued)return;
   queued=true;
-  queueMicrotask(()=>{queued=false;syncCard()});
+  queueMicrotask(()=>{queued=false;syncButton()});
 }
 
-syncCard();
+document.addEventListener('click',event=>{
+  const button=event.target.closest(`[${BUTTON_ATTR}]`);
+  if(!button)return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  openMoodCheckin();
+},true);
+
+syncButton();
 const app=document.querySelector('#app');
-if(app){
-  new MutationObserver(queueSync).observe(app,{childList:true,subtree:true});
-}
+if(app)new MutationObserver(queueSync).observe(app,{childList:true,subtree:true});
 window.addEventListener('storage',queueSync);
 window.addEventListener('reclaim:reload-restored',queueSync);
