@@ -139,6 +139,13 @@ function storeWelcome(userId,profile){
   }));
 }
 function clearWelcome(){sessionStorage.removeItem(RETURNING_KEY)}
+function pendingWelcomeFor(userId){
+  const payload=readJson(RETURNING_KEY,sessionStorage);
+  if(!payload)return false;
+  const valid=payload.userId===userId&&Date.now()-Number(payload.createdAt||0)<=10*60*1000;
+  if(!valid)clearWelcome();
+  return valid;
+}
 function clickLegacyBridge(stage,view=null){
   const bridge=document.querySelector('.intro-reference-cta[data-stage]');
   if(!bridge)return false;
@@ -178,13 +185,14 @@ async function resolveStartup(){
     const data=await lifecycleData(session);
     if(!data.profile){startupResolved=true;return}
     let route;
+    const existingWelcome=pendingWelcomeFor(data.userId);
     if(!data.profile.onboarding_completed){clearWelcome();route=onboardingRoute()}
+    else if(existingWelcome)route={stage:'welcome',view:'home'};
     else route=completedRoute(data.userId,data.checkins);
 
     if(route.stage==='welcome'){
       setStateRoute('intro','home');
-      storeWelcome(data.userId,data.profile);
-      // welcome-back.js owns rendering only. Triggering a DOM mutation makes its observer react.
+      if(!existingWelcome)storeWelcome(data.userId,data.profile);
       const app=document.querySelector('#app');
       if(app){const marker=document.createComment('welcome-ready');app.appendChild(marker);marker.remove()}
     }else{
