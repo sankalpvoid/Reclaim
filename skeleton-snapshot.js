@@ -1,10 +1,16 @@
 const SNAPSHOT_KEY = 'reclaim-page-skeleton-v1';
 const STATE_KEY = 'reclaim-state-v2';
 const SESSION_KEY = 'reclaim-session-v1';
+const ROUTE_TRANSITION_KEY = 'reclaim-route-transition-v1';
 
 function parse(key, fallback = null) {
   try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; }
   catch { return fallback; }
+}
+
+function routeTransitionActive() {
+  try { return Boolean(sessionStorage.getItem(ROUTE_TRANSITION_KEY)); }
+  catch { return false; }
 }
 
 function currentUserId() {
@@ -161,6 +167,10 @@ function prepareClone(root) {
 }
 
 function saveSnapshot() {
+  // During a deliberate route reload the saved state may already describe the destination
+  // while the DOM still describes the source screen. Never persist that mismatched geometry.
+  if (routeTransitionActive()) return;
+
   const app = document.getElementById('app');
   if (!app || app.querySelector('.boot-shell,.reclaim-snapshot-host')) return;
   const shell = app.querySelector('.shell') || app.firstElementChild;
