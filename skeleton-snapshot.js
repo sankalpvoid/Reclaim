@@ -42,6 +42,58 @@ function prepareClone(root) {
     if (el.style?.backgroundImage) el.style.backgroundImage = 'none';
   });
 
+  // Progress is state, not structure. Preserve the track geometry but hide the fill.
+  clone.querySelectorAll([
+    '.progress > span',
+    '[class*="progress"] > span',
+    '[class*="progress"] [class*="fill"]',
+    '[class*="meter"] [class*="fill"]',
+    '[role="progressbar"] > *',
+  ].join(',')).forEach((el) => {
+    el.style.setProperty('opacity', '0', 'important');
+    el.style.setProperty('background', 'transparent', 'important');
+    el.style.setProperty('box-shadow', 'none', 'important');
+  });
+
+  // Snapshot styling is deliberately monochrome. The real page supplies color after load.
+  const neutralStyle = document.createElement('style');
+  neutralStyle.setAttribute('data-snapshot-style', 'neutral');
+  neutralStyle.textContent = `
+    .reclaim-snapshot {
+      filter: grayscale(1) saturate(0) !important;
+    }
+    .reclaim-snapshot::after {
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255,255,255,.018) 34%,
+        rgba(255,255,255,.085) 50%,
+        rgba(255,255,255,.018) 66%,
+        transparent 100%
+      ) !important;
+    }
+    html[data-theme="light"] .reclaim-snapshot::after {
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(35,35,35,.012) 34%,
+        rgba(35,35,35,.055) 50%,
+        rgba(35,35,35,.012) 66%,
+        transparent 100%
+      ) !important;
+    }
+    .reclaim-snapshot .progress > span,
+    .reclaim-snapshot [class*="progress"] > span,
+    .reclaim-snapshot [class*="progress"] [class*="fill"],
+    .reclaim-snapshot [class*="meter"] [class*="fill"],
+    .reclaim-snapshot [role="progressbar"] > * {
+      opacity: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+  `;
+  clone.prepend(neutralStyle);
+
   clone.querySelectorAll('script').forEach((el) => el.remove());
   return clone;
 }
