@@ -13,6 +13,31 @@
         document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#f8f6fc' : '#000000';
       })();
     </script>
+    <style>
+      html,body{margin:0;min-height:100%;background:#000;color:#fff}
+      html[data-theme="light"],html[data-theme="light"] body{background:#f8f6fc;color:#18151d}
+      .boot-shell{box-sizing:border-box;min-height:100vh;width:min(100%,760px);margin:0 auto;padding:28px 22px 44px;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+      .boot-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:12px;margin-bottom:52px}
+      .boot-brand{text-align:center;font:700 24px/1 Arial,sans-serif;letter-spacing:.04em}
+      .boot-icon{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.025)}
+      .boot-hero{margin-bottom:24px}
+      .boot-eyebrow,.boot-line,.boot-card,.boot-pill{position:relative;overflow:hidden;background:rgba(255,255,255,.075)}
+      .boot-eyebrow{width:118px;height:12px;border-radius:8px;margin-bottom:16px}
+      .boot-line{height:48px;border-radius:12px;margin-bottom:10px}
+      .boot-line.short{width:68%}
+      .boot-subline{width:56%;height:14px;border-radius:8px;margin-top:18px;background:rgba(255,255,255,.055)}
+      .boot-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:30px}
+      .boot-card{height:122px;border-radius:22px;border:1px solid rgba(255,255,255,.06)}
+      .boot-card.wide{grid-column:1/-1;height:156px}
+      .boot-pill{width:42%;height:48px;border-radius:18px;margin-top:18px}
+      .boot-eyebrow::after,.boot-line::after,.boot-card::after,.boot-pill::after{content:"";position:absolute;inset:0;transform:translateX(-110%);background:linear-gradient(90deg,transparent,rgba(139,92,246,.16),transparent);animation:reclaimBootShimmer 1.25s ease-in-out infinite}
+      @keyframes reclaimBootShimmer{100%{transform:translateX(110%)}}
+      html[data-theme="light"] .boot-icon{border-color:rgba(35,25,48,.10);background:rgba(35,25,48,.025)}
+      html[data-theme="light"] .boot-eyebrow,html[data-theme="light"] .boot-line,html[data-theme="light"] .boot-card,html[data-theme="light"] .boot-pill,html[data-theme="light"] .boot-subline{background:rgba(47,36,62,.075)}
+      html[data-theme="light"] .boot-card{border-color:rgba(47,36,62,.06)}
+      @media (max-width:480px){.boot-shell{padding:22px 18px 36px}.boot-top{margin-bottom:42px}.boot-line{height:42px}.boot-card{height:108px}.boot-card.wide{height:142px}}
+      @media (prefers-reduced-motion:reduce){.boot-eyebrow::after,.boot-line::after,.boot-card::after,.boot-pill::after{animation:none}}
+    </style>
     <meta name="description" content="Reclaim — a calm, evidence-informed smoke-free companion." />
     <title>Reclaim</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,7 +56,27 @@
     <link rel="stylesheet" href="manual-checkin.css?v=manual-checkin-1" />
   </head>
   <body>
-    <div id="app" aria-live="polite"></div>
+    <div id="app" aria-live="polite">
+      <div class="boot-shell" aria-label="Loading Reclaim">
+        <div class="boot-top">
+          <div class="boot-icon"></div>
+          <div class="boot-brand">RECLAIM</div>
+          <div class="boot-icon"></div>
+        </div>
+        <div class="boot-hero">
+          <div class="boot-eyebrow"></div>
+          <div class="boot-line"></div>
+          <div class="boot-line short"></div>
+          <div class="boot-subline"></div>
+        </div>
+        <div class="boot-grid">
+          <div class="boot-card"></div>
+          <div class="boot-card"></div>
+          <div class="boot-card wide"></div>
+        </div>
+        <div class="boot-pill"></div>
+      </div>
+    </div>
     <script type="module" src="auth-lifecycle.js?v=auth-lifecycle-2"></script>
     <script type="module" src="cloud-bootstrap.js?v=cloud-bootstrap-1"></script>
     <script type="module" src="app.js?v=light-1"></script>
