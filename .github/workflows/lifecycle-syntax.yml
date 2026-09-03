@@ -4,14 +4,17 @@ on:
   pull_request:
     paths:
       - 'auth-lifecycle.js'
+      - 'welcome-back.js'
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
       - 'index.html'
   push:
     branches:
       - fix/data-foundation
+      - feat/welcome-back-flow
     paths:
       - 'auth-lifecycle.js'
+      - 'welcome-back.js'
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
       - 'index.html'
@@ -27,5 +30,6 @@ jobs:
       - name: Check lifecycle JavaScript syntax
         run: |
           node --check auth-lifecycle.js
+          node --check welcome-back.js
           node --check checkin-sync.js
           node --check session-bootstrap.js
