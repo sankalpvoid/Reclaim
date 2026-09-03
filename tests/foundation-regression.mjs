@@ -56,3 +56,11 @@ test('cloud bootstrap hydrates smoking and craving history through one smoking_e
   assert.equal(bootstrap.includes('event_type=eq.craving'),false);
   assert.equal(bootstrap.includes('event_type=eq.smoked'),false);
 });
+
+test('manual mood transition clears stale Home snapshot before reload settles',async()=>{
+  const manual=await read('manual-checkin.js');
+  assert.equal(manual.includes("const SNAPSHOT_KEY='reclaim-page-skeleton-v1'"),true);
+  assert.equal(manual.includes("window.addEventListener('pagehide',clearTransitionSnapshot,{once:true})"),true);
+  assert.equal(manual.includes("document.addEventListener('visibilitychange'"),true);
+  assert.equal(manual.includes('localStorage.removeItem(SNAPSHOT_KEY)'),true);
+});
