@@ -17,6 +17,12 @@
       html,body{margin:0;min-height:100%;background:#050505;color:#fff}
       html[data-theme="light"],html[data-theme="light"] body{background:#f8f6fc;color:#18151d}
       #app{min-height:100dvh}
+      .reclaim-snapshot{pointer-events:none!important;user-select:none!important;position:relative!important;overflow:hidden!important}
+      .reclaim-snapshot *{color:transparent!important;text-shadow:none!important;caret-color:transparent!important;animation:none!important;transition:none!important}
+      .reclaim-snapshot img,.reclaim-snapshot video,.reclaim-snapshot iframe,.reclaim-snapshot svg{opacity:0!important}
+      .reclaim-snapshot input,.reclaim-snapshot textarea{color:transparent!important}
+      .reclaim-snapshot::after{content:"";position:absolute;z-index:9999;inset:0;pointer-events:none;transform:translateX(-115%);background:linear-gradient(90deg,transparent 0%,rgba(139,92,246,.035) 34%,rgba(139,92,246,.16) 50%,rgba(139,92,246,.035) 66%,transparent 100%);animation:reclaimSnapshotShimmer 1.25s ease-in-out infinite}
+      @keyframes reclaimSnapshotShimmer{100%{transform:translateX(115%)}}
       .boot-shell{box-sizing:border-box;width:min(100%,430px);min-height:100dvh;margin:0 auto;padding:calc(env(safe-area-inset-top) + 22px) 22px 96px;background:#000;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden;position:relative}
       .boot-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:12px;margin-bottom:28px}
       .boot-brand{text-align:center;font:700 22px/1 Arial,sans-serif;letter-spacing:.04em}
@@ -45,7 +51,7 @@
       html[data-theme="light"] .boot-nav{background:rgba(248,246,252,.97);border-top-color:rgba(47,36,62,.08)}
       @media(min-width:700px){body{padding:20px}.boot-shell{min-height:calc(100dvh - 40px);border:1px solid #242424;border-radius:28px}html[data-theme="light"] .boot-shell{border-color:rgba(47,36,62,.12)}}
       @media(max-width:480px){.boot-shell{padding:calc(env(safe-area-inset-top) + 22px) 22px calc(96px + env(safe-area-inset-bottom))}}
-      @media(prefers-reduced-motion:reduce){.boot-block::after,.boot-card::after,.boot-pill::after,.boot-circle::after,.boot-row::after,.boot-tab::after,.boot-bar::after{animation:none}}
+      @media(prefers-reduced-motion:reduce){.boot-block::after,.boot-card::after,.boot-pill::after,.boot-circle::after,.boot-row::after,.boot-tab::after,.boot-bar::after,.reclaim-snapshot::after{animation:none}}
     </style>
     <meta name="description" content="Reclaim — a calm, evidence-informed smoke-free companion." />
     <title>Reclaim</title>
@@ -69,6 +75,28 @@
     <script>
       (()=>{
         const el=document.getElementById('app');
+        let state={stage:'intro',view:'home'};
+        let session={};
+        try{state={...state,...JSON.parse(localStorage.getItem('reclaim-state-v2')||'{}')}}catch{}
+        try{session=JSON.parse(localStorage.getItem('reclaim-session-v1')||'{}')||{}}catch{}
+        const userId=session?.user?.id||session?.user_id||session?.id||null;
+        try{
+          const snapshot=JSON.parse(localStorage.getItem('reclaim-page-skeleton-v1')||'null');
+          const sameUser=(snapshot?.userId||null)===(userId||null);
+          const sameStage=!snapshot?.stage||snapshot.stage===(state.stage||'intro');
+          const sameView=(state.stage||'intro')!=='app'||!snapshot?.view||snapshot.view===(state.view||'home');
+          const fresh=Number(snapshot?.capturedAt||0)>Date.now()-7*24*60*60*1000;
+          if(snapshot?.html&&sameUser&&sameStage&&sameView&&fresh){
+            el.innerHTML=snapshot.html;
+            const root=el.firstElementChild;
+            if(root){
+              root.classList.add('reclaim-snapshot');
+              root.setAttribute('aria-hidden','true');
+            }
+            return;
+          }
+        }catch{}
+
         const block=(cls='')=>`<div class="boot-block ${cls}"></div>`;
         const card=(cls='medium')=>`<div class="boot-card ${cls}"></div>`;
         const row=(cls='')=>`<div class="boot-row ${cls}"></div>`;
@@ -77,8 +105,6 @@
         const heading=()=>`${block('boot-kicker')}${block('boot-title')}${block('boot-title short')}${block('boot-copy short')}`;
         const nav=()=>`<div class="boot-nav"><span></span><span></span><span></span><span></span><span></span></div>`;
         const shell=(body,{navBar=false}={})=>`<div class="boot-shell" aria-label="Loading Reclaim">${body}${navBar?nav():''}</div>`;
-        let state={stage:'intro',view:'home'};
-        try{state={...state,...JSON.parse(localStorage.getItem('reclaim-state-v2')||'{}')}}catch{}
         const stage=state.stage||'intro',view=state.view||'home';
         const appPage=()=>{
           if(view==='home')return shell(`${top('RECLAIM')}<div class="boot-stack">${card('hero')}<div class="boot-grid">${card('medium')}${card('medium')}</div>${row('compact')}${card('large')}${row('compact')}</div>`,{navBar:true});
@@ -113,5 +139,6 @@
     <script type="module" src="name-personalization.js?v=recovery-1"></script>
     <script src="quick-theme-toggle.js?v=theme-toggle-1" defer></script>
     <script type="module" src="analytics.js?v=analytics-1"></script>
+    <script type="module" src="skeleton-snapshot.js?v=skeleton-snapshot-1"></script>
   </body>
 </html>
