@@ -99,34 +99,34 @@ function prepareClone(root) {
       text-shadow: none !important;
     }
     .reclaim-snapshot [data-skeleton-surface] {
-      background: rgba(255,255,255,.016) !important;
-      border-color: rgba(181,155,255,.22) !important;
+      background: rgba(255,255,255,.018) !important;
+      border-color: rgba(185,158,255,.30) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.045),
-        inset 0 0 22px rgba(139,92,246,.055),
-        0 0 0 1px rgba(139,92,246,.025),
+        inset 0 1px 0 rgba(255,255,255,.05),
+        inset 0 0 26px rgba(139,92,246,.085),
+        0 0 18px rgba(139,92,246,.045),
         0 10px 26px rgba(0,0,0,.08) !important;
-      -webkit-backdrop-filter: blur(12px) saturate(.86) !important;
-      backdrop-filter: blur(12px) saturate(.86) !important;
+      -webkit-backdrop-filter: blur(12px) saturate(.9) !important;
+      backdrop-filter: blur(12px) saturate(.9) !important;
     }
     html[data-theme="light"] .reclaim-snapshot [data-skeleton-surface] {
-      background: rgba(255,255,255,.24) !important;
-      border-color: rgba(124,92,210,.19) !important;
+      background: rgba(255,255,255,.25) !important;
+      border-color: rgba(126,96,210,.24) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.58),
-        inset 0 0 22px rgba(139,92,246,.045),
-        0 0 0 1px rgba(139,92,246,.018),
+        inset 0 1px 0 rgba(255,255,255,.62),
+        inset 0 0 24px rgba(139,92,246,.065),
+        0 0 16px rgba(139,92,246,.035),
         0 10px 26px rgba(55,45,70,.03) !important;
     }
     .reclaim-snapshot::after {
       background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(196,181,253,.012) 26%,
-        rgba(196,181,253,.07) 41%,
-        rgba(221,214,254,.19) 50%,
-        rgba(196,181,253,.07) 59%,
-        rgba(196,181,253,.012) 74%,
+        rgba(196,181,253,.018) 24%,
+        rgba(196,181,253,.10) 40%,
+        rgba(221,214,254,.25) 50%,
+        rgba(196,181,253,.10) 60%,
+        rgba(196,181,253,.018) 76%,
         transparent 100%
       ) !important;
     }
@@ -134,11 +134,11 @@ function prepareClone(root) {
       background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(124,92,210,.012) 26%,
-        rgba(124,92,210,.055) 41%,
-        rgba(139,92,246,.12) 50%,
-        rgba(124,92,210,.055) 59%,
-        rgba(124,92,210,.012) 74%,
+        rgba(124,92,210,.015) 24%,
+        rgba(124,92,210,.075) 40%,
+        rgba(139,92,246,.16) 50%,
+        rgba(124,92,210,.075) 60%,
+        rgba(124,92,210,.015) 76%,
         transparent 100%
       ) !important;
     }
