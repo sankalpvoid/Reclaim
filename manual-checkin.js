@@ -1,3 +1,5 @@
+import './ui-polish.js';
+
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
 const SNAPSHOT_KEY='reclaim-page-skeleton-v1';
@@ -16,16 +18,12 @@ function isDashboardHome(){
 
 function openMoodCheckin(){
   const state=readJson(STATE_KEY)||{};
-  // The current DOM is still Home until reload begins. The snapshot module can run on
-  // visibilitychange/pagehide after the route is already saved as mood, which would
-  // incorrectly store Home geometry under the mood route. Clear that stale capture after
-  // those hooks run so the reload falls back to the route-aware Mood skeleton instead.
-  const clearTransitionSnapshot=()=>localStorage.removeItem(SNAPSHOT_KEY);
-  window.addEventListener('pagehide',clearTransitionSnapshot,{once:true});
-  document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='hidden')clearTransitionSnapshot();
-  },{once:true});
-  clearTransitionSnapshot();
+  // Snapshot capture also runs during pagehide/visibilitychange. Mark the live Home shell
+  // as an ineligible snapshot source before changing the route, otherwise that later hook
+  // can save Home geometry under the mood route after an earlier clear.
+  const liveShell=document.querySelector('#app .shell')||document.querySelector('#app .home-screen')||document.querySelector('#app .tracking-home');
+  if(liveShell)liveShell.classList.add('reclaim-snapshot-host');
+  localStorage.removeItem(SNAPSHOT_KEY);
   localStorage.setItem(STATE_KEY,JSON.stringify({...state,stage:'mood',view:'home'}));
   location.reload();
 }
