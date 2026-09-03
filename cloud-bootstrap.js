@@ -1,5 +1,6 @@
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 import { fromDatabaseRows, normalizeBehaviorEvents, deriveSmokingEvents, deriveCravings } from './behavior-model.js';
+import './behavior-events.js';
 
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
