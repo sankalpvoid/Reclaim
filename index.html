@@ -14,29 +14,32 @@
       })();
     </script>
     <style>
-      html,body{margin:0;min-height:100%;background:#000;color:#fff}
+      html,body{margin:0;min-height:100%;background:#050505;color:#fff}
       html[data-theme="light"],html[data-theme="light"] body{background:#f8f6fc;color:#18151d}
-      .boot-shell{box-sizing:border-box;min-height:100vh;width:min(100%,760px);margin:0 auto;padding:28px 22px 44px;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-      .boot-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:12px;margin-bottom:52px}
-      .boot-brand{text-align:center;font:700 24px/1 Arial,sans-serif;letter-spacing:.04em}
+      #app{min-height:100dvh}
+      .boot-shell{box-sizing:border-box;width:min(100%,430px);min-height:100dvh;margin:0 auto;padding:calc(env(safe-area-inset-top) + 22px) 22px 92px;background:#000;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+      .boot-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:12px;margin-bottom:42px}
+      .boot-brand{text-align:center;font:700 22px/1 Arial,sans-serif;letter-spacing:.04em}
       .boot-icon{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.025)}
-      .boot-hero{margin-bottom:24px}
+      .boot-hero{margin-bottom:20px}
       .boot-eyebrow,.boot-line,.boot-card,.boot-pill{position:relative;overflow:hidden;background:rgba(255,255,255,.075)}
-      .boot-eyebrow{width:118px;height:12px;border-radius:8px;margin-bottom:16px}
-      .boot-line{height:48px;border-radius:12px;margin-bottom:10px}
-      .boot-line.short{width:68%}
-      .boot-subline{width:56%;height:14px;border-radius:8px;margin-top:18px;background:rgba(255,255,255,.055)}
-      .boot-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:30px}
-      .boot-card{height:122px;border-radius:22px;border:1px solid rgba(255,255,255,.06)}
-      .boot-card.wide{grid-column:1/-1;height:156px}
-      .boot-pill{width:42%;height:48px;border-radius:18px;margin-top:18px}
+      .boot-eyebrow{width:96px;height:10px;border-radius:8px;margin-bottom:14px}
+      .boot-line{height:40px;border-radius:11px;margin-bottom:9px}
+      .boot-line.short{width:72%}
+      .boot-subline{width:58%;height:12px;border-radius:8px;margin-top:15px;background:rgba(255,255,255,.055)}
+      .boot-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
+      .boot-card{height:108px;border-radius:18px;border:1px solid rgba(255,255,255,.06)}
+      .boot-card.wide{grid-column:1/-1;height:144px}
+      .boot-pill{width:46%;height:44px;border-radius:14px;margin-top:14px}
       .boot-eyebrow::after,.boot-line::after,.boot-card::after,.boot-pill::after{content:"";position:absolute;inset:0;transform:translateX(-110%);background:linear-gradient(90deg,transparent,rgba(139,92,246,.16),transparent);animation:reclaimBootShimmer 1.25s ease-in-out infinite}
       @keyframes reclaimBootShimmer{100%{transform:translateX(110%)}}
+      html[data-theme="light"] .boot-shell{background:#f8f6fc}
       html[data-theme="light"] .boot-icon{border-color:rgba(35,25,48,.10);background:rgba(35,25,48,.025)}
       html[data-theme="light"] .boot-eyebrow,html[data-theme="light"] .boot-line,html[data-theme="light"] .boot-card,html[data-theme="light"] .boot-pill,html[data-theme="light"] .boot-subline{background:rgba(47,36,62,.075)}
       html[data-theme="light"] .boot-card{border-color:rgba(47,36,62,.06)}
-      @media (max-width:480px){.boot-shell{padding:22px 18px 36px}.boot-top{margin-bottom:42px}.boot-line{height:42px}.boot-card{height:108px}.boot-card.wide{height:142px}}
-      @media (prefers-reduced-motion:reduce){.boot-eyebrow::after,.boot-line::after,.boot-card::after,.boot-pill::after{animation:none}}
+      @media(min-width:700px){body{padding:20px}.boot-shell{min-height:calc(100dvh - 40px);border:1px solid #242424;border-radius:28px}html[data-theme="light"] .boot-shell{border-color:rgba(47,36,62,.12)}}
+      @media(max-width:480px){.boot-shell{padding:calc(env(safe-area-inset-top) + 22px) 22px calc(92px + env(safe-area-inset-bottom))}.boot-top{margin-bottom:36px}}
+      @media(prefers-reduced-motion:reduce){.boot-eyebrow::after,.boot-line::after,.boot-card::after,.boot-pill::after{animation:none}}
     </style>
     <meta name="description" content="Reclaim — a calm, evidence-informed smoke-free companion." />
     <title>Reclaim</title>
