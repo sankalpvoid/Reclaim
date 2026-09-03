@@ -50,10 +50,8 @@ function prepareClone(root) {
   const clone = root.cloneNode(true);
   tagStructuralSurfaces(root, clone);
 
-  // Never preserve transient overlays or the loader itself.
   clone.querySelectorAll('.toast,.modal,.boot-shell,.reclaim-snapshot-host,[data-snapshot-ignore]').forEach((el) => el.remove());
 
-  // Keep geometry without persisting potentially huge or remote media payloads.
   const originals = root.querySelectorAll('img,video,iframe');
   const media = clone.querySelectorAll('img,video,iframe');
   media.forEach((el, index) => {
@@ -77,7 +75,6 @@ function prepareClone(root) {
     if (el.style?.backgroundImage) el.style.backgroundImage = 'none';
   });
 
-  // Progress is state, not structure. Preserve the track geometry but hide the fill.
   clone.querySelectorAll([
     '.progress > span',
     '[class*="progress"] > span',
@@ -91,8 +88,6 @@ function prepareClone(root) {
     el.style.setProperty('box-shadow', 'none', 'important');
   });
 
-  // The snapshot keeps the real page geometry but renders it as frosted glass.
-  // Reclaim's purple appears only as a faint glint, never as a solid loading state.
   const glassStyle = document.createElement('style');
   glassStyle.setAttribute('data-snapshot-style', 'glass');
   glassStyle.textContent = `
@@ -104,32 +99,34 @@ function prepareClone(root) {
       text-shadow: none !important;
     }
     .reclaim-snapshot [data-skeleton-surface] {
-      background: rgba(255,255,255,.014) !important;
-      border-color: rgba(188,168,255,.12) !important;
+      background: rgba(255,255,255,.016) !important;
+      border-color: rgba(181,155,255,.22) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.035),
-        inset 0 0 18px rgba(139,92,246,.018),
+        inset 0 1px 0 rgba(255,255,255,.045),
+        inset 0 0 22px rgba(139,92,246,.055),
+        0 0 0 1px rgba(139,92,246,.025),
         0 10px 26px rgba(0,0,0,.08) !important;
-      -webkit-backdrop-filter: blur(12px) saturate(.82) !important;
-      backdrop-filter: blur(12px) saturate(.82) !important;
+      -webkit-backdrop-filter: blur(12px) saturate(.86) !important;
+      backdrop-filter: blur(12px) saturate(.86) !important;
     }
     html[data-theme="light"] .reclaim-snapshot [data-skeleton-surface] {
-      background: rgba(255,255,255,.22) !important;
-      border-color: rgba(126,96,210,.11) !important;
+      background: rgba(255,255,255,.24) !important;
+      border-color: rgba(124,92,210,.19) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.52),
-        inset 0 0 18px rgba(139,92,246,.014),
+        inset 0 1px 0 rgba(255,255,255,.58),
+        inset 0 0 22px rgba(139,92,246,.045),
+        0 0 0 1px rgba(139,92,246,.018),
         0 10px 26px rgba(55,45,70,.03) !important;
     }
     .reclaim-snapshot::after {
       background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(196,181,253,.006) 30%,
-        rgba(196,181,253,.035) 43%,
-        rgba(221,214,254,.085) 50%,
-        rgba(196,181,253,.035) 57%,
-        rgba(196,181,253,.006) 70%,
+        rgba(196,181,253,.012) 26%,
+        rgba(196,181,253,.07) 41%,
+        rgba(221,214,254,.19) 50%,
+        rgba(196,181,253,.07) 59%,
+        rgba(196,181,253,.012) 74%,
         transparent 100%
       ) !important;
     }
@@ -137,11 +134,11 @@ function prepareClone(root) {
       background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(124,92,210,.006) 30%,
-        rgba(124,92,210,.024) 43%,
-        rgba(139,92,246,.055) 50%,
-        rgba(124,92,210,.024) 57%,
-        rgba(124,92,210,.006) 70%,
+        rgba(124,92,210,.012) 26%,
+        rgba(124,92,210,.055) 41%,
+        rgba(139,92,246,.12) 50%,
+        rgba(124,92,210,.055) 59%,
+        rgba(124,92,210,.012) 74%,
         transparent 100%
       ) !important;
     }
@@ -173,7 +170,6 @@ function saveSnapshot() {
   const clone = prepareClone(shell);
   const html = clone.outerHTML;
 
-  // Keep localStorage safe even if a future page becomes unexpectedly large.
   if (!html || html.length > 900_000) return;
 
   try {
@@ -186,7 +182,6 @@ function saveSnapshot() {
       html,
     }));
   } catch {
-    // Snapshotting is a visual enhancement only; never affect the app itself.
   }
 }
 
