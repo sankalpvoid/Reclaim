@@ -1,6 +1,7 @@
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
 const SNAPSHOT_KEY='reclaim-page-skeleton-v1';
+const ROUTE_TRANSITION_KEY='reclaim-route-transition-v1';
 const BUTTON_ATTR='data-manual-mood-checkin';
 const ORIGINAL_HTML_ATTR='data-original-for-you-html';
 
@@ -16,16 +17,11 @@ function isDashboardHome(){
 
 function openMoodCheckin(){
   const state=readJson(STATE_KEY)||{};
-  // The current DOM is still Home until reload begins. The snapshot module can run on
-  // visibilitychange/pagehide after the route is already saved as mood, which would
-  // incorrectly store Home geometry under the mood route. Clear that stale capture after
-  // those hooks run so the reload falls back to the route-aware Mood skeleton instead.
-  const clearTransitionSnapshot=()=>localStorage.removeItem(SNAPSHOT_KEY);
-  window.addEventListener('pagehide',clearTransitionSnapshot,{once:true});
-  document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='hidden')clearTransitionSnapshot();
-  },{once:true});
-  clearTransitionSnapshot();
+  // Keep the snapshot writer disabled for the whole Home -> Mood navigation. A delayed
+  // snapshot timer can otherwise run after stage='mood' is saved while the Home DOM is
+  // still on screen, producing a Home-shaped snapshot that is incorrectly tagged Mood.
+  try{sessionStorage.setItem(ROUTE_TRANSITION_KEY,'mood')}catch{}
+  localStorage.removeItem(SNAPSHOT_KEY);
   localStorage.setItem(STATE_KEY,JSON.stringify({...state,stage:'mood',view:'home'}));
   location.reload();
 }
@@ -89,3 +85,9 @@ const app=document.querySelector('#app');
 if(app)new MutationObserver(queueSync).observe(app,{childList:true,subtree:true});
 window.addEventListener('storage',queueSync);
 window.addEventListener('reclaim:reload-restored',queueSync);
+
+// The inline boot skeleton has already rendered by the time this module executes, so it is
+// safe to release the transition lock now. Future snapshots will describe the real Mood DOM.
+try{sessionStorage.removeItem(ROUTE_TRANSITION_KEY)}catch{}
+
+import './ui-polish.js?v=ui-polish-1';
