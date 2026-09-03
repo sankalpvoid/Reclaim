@@ -7,16 +7,19 @@ on:
       - 'welcome-back.js'
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
+      - 'manual-checkin.js'
       - 'index.html'
   push:
     branches:
       - fix/data-foundation
       - feat/welcome-back-flow
+      - feat/manual-mood-checkin
     paths:
       - 'auth-lifecycle.js'
       - 'welcome-back.js'
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
+      - 'manual-checkin.js'
       - 'index.html'
 
 jobs:
@@ -33,3 +36,4 @@ jobs:
           node --check welcome-back.js
           node --check checkin-sync.js
           node --check session-bootstrap.js
+          node --check manual-checkin.js

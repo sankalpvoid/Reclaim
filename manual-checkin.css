@@ -1,0 +1,7 @@
+/* Compact Home mood check-in: preserve topbar symmetry and avoid Dashboard clutter. */
+.manual-checkin-button{position:relative;display:grid;place-items:center;overflow:visible}
+.manual-checkin-button .material-symbols-rounded{font-size:23px;line-height:1;color:#a98cff;font-variation-settings:'FILL' 0,'wght' 350,'GRAD' 0,'opsz' 24}
+.manual-checkin-button::after{content:'';position:absolute;inset:5px;border:1px solid rgba(169,140,255,.28);border-radius:50%;pointer-events:none}
+.manual-checkin-button:active{transform:scale(.94)}
+html[data-theme="light"] .manual-checkin-button .material-symbols-rounded{color:#7654d8}
+html[data-theme="light"] .manual-checkin-button::after{border-color:rgba(118,84,216,.22)}
