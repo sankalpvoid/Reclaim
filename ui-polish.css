@@ -1,0 +1,91 @@
+/* September UI cleanup: compact settings, clearer data entry, and hero alignment. */
+
+/* Small numeric plan/calculation values should read like compact data, not long-form text. */
+.ui-compact-field{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  column-gap:14px!important;
+  row-gap:4px!important;
+}
+.ui-compact-field>.ui-compact-value,
+.ui-compact-field input.ui-compact-value,
+.ui-compact-field select.ui-compact-value{
+  width:118px!important;
+  min-width:96px!important;
+  max-width:132px!important;
+  min-height:44px!important;
+  padding:9px 12px!important;
+  justify-self:end!important;
+  text-align:right!important;
+  border-radius:12px!important;
+  font-family:var(--display)!important;
+  font-size:21px!important;
+  line-height:1!important;
+  letter-spacing:.35px!important;
+  font-variant-numeric:tabular-nums;
+}
+.ui-compact-field small,
+.ui-compact-field .muted{
+  grid-column:1 / 2;
+}
+
+/* Keep date/time controls untouched; these are intentionally the visual reference. */
+.ui-compact-field input[type="date"],
+.ui-compact-field input[type="time"],
+.ui-compact-field input[type="datetime-local"]{
+  width:100%!important;
+  max-width:none!important;
+  font-family:inherit!important;
+  font-size:inherit!important;
+  text-align:left!important;
+}
+
+/* Appearance is a utility setting, not a hero card. */
+.ui-appearance-card{
+  padding:13px 15px!important;
+  border-radius:16px!important;
+  min-height:0!important;
+}
+.ui-appearance-card h2,
+.ui-appearance-card h3,
+.ui-appearance-card strong{
+  margin-top:0!important;
+}
+.ui-appearance-card .stack{
+  gap:7px!important;
+}
+.ui-appearance-card button{
+  min-height:36px!important;
+  padding-top:8px!important;
+  padding-bottom:8px!important;
+}
+
+/* Remove product-infrastructure status from user-facing settings. */
+[data-ui-supabase-status]{display:none!important}
+
+/* The artwork should respect the same right inset as the hero copy instead of hanging off-card. */
+.hero-runner .hero-artwork,
+.hero-runner .runner-art{
+  pointer-events:none;
+}
+.hero-runner .runner-art{
+  right:6px!important;
+  top:12px!important;
+  width:198px!important;
+  height:148px!important;
+  object-position:58% 48%!important;
+}
+
+/* Light and dark artwork use the same geometry so switching theme never shifts the composition. */
+html[data-theme="light"] .hero-runner .runner-art,
+html[data-theme="dark"] .hero-runner .runner-art{
+  right:6px!important;
+  top:12px!important;
+}
+
+@media(max-width:360px){
+  .ui-compact-field>.ui-compact-value,
+  .ui-compact-field input.ui-compact-value,
+  .ui-compact-field select.ui-compact-value{width:104px!important;min-width:88px!important}
+  .hero-runner .runner-art{right:2px!important;width:184px!important}
+}
