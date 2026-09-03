@@ -8,18 +8,21 @@ on:
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
       - 'manual-checkin.js'
+      - 'cloud-bootstrap.js'
       - 'index.html'
   push:
     branches:
       - fix/data-foundation
       - feat/welcome-back-flow
       - feat/manual-mood-checkin
+      - fix/cloud-hydration
     paths:
       - 'auth-lifecycle.js'
       - 'welcome-back.js'
       - 'checkin-sync.js'
       - 'session-bootstrap.js'
       - 'manual-checkin.js'
+      - 'cloud-bootstrap.js'
       - 'index.html'
 
 jobs:
@@ -37,3 +40,4 @@ jobs:
           node --check checkin-sync.js
           node --check session-bootstrap.js
           node --check manual-checkin.js
+          node --check cloud-bootstrap.js
