@@ -57,10 +57,18 @@ test('cloud bootstrap hydrates smoking and craving history through one smoking_e
   assert.equal(bootstrap.includes('event_type=eq.smoked'),false);
 });
 
-test('manual mood transition clears stale Home snapshot before reload settles',async()=>{
+test('manual mood transition blocks Home snapshot recapture before route change',async()=>{
   const manual=await read('manual-checkin.js');
   assert.equal(manual.includes("const SNAPSHOT_KEY='reclaim-page-skeleton-v1'"),true);
-  assert.equal(manual.includes("window.addEventListener('pagehide',clearTransitionSnapshot,{once:true})"),true);
-  assert.equal(manual.includes("document.addEventListener('visibilitychange'"),true);
+  assert.equal(manual.includes("classList.add('reclaim-snapshot-host')"),true);
   assert.equal(manual.includes('localStorage.removeItem(SNAPSHOT_KEY)'),true);
+  assert.equal(manual.includes("stage:'mood'"),true);
+});
+
+test('UI polish keeps small plan values compact and removes infrastructure status',async()=>{
+  const [script,styles]=await Promise.all([read('ui-polish.js'),read('ui-polish.css')]);
+  assert.equal(script.includes('connected\\s+to\\s+supabase'),true);
+  assert.equal(script.includes("classList.add('ui-compact-field')"),true);
+  assert.equal(styles.includes('.ui-appearance-card'),true);
+  assert.equal(styles.includes('.hero-runner .runner-art'),true);
 });
