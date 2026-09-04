@@ -29,7 +29,58 @@ function markAppearance(root=document){
   const heading=candidates[0];
   if(!heading)return;
   const card=heading.closest('.card')||heading.parentElement;
-  if(card)card.classList.add('ui-appearance-card');
+  if(!card)return;
+
+  card.classList.add('ui-appearance-card');
+  card.style.setProperty('display','flex','important');
+  card.style.setProperty('align-items','center','important');
+  card.style.setProperty('justify-content','space-between','important');
+  card.style.setProperty('gap','10px','important');
+  card.style.setProperty('min-height','0','important');
+  card.style.setProperty('padding','10px 12px','important');
+  card.style.setProperty('border-radius','15px','important');
+
+  const copy=card.querySelector('.appearance-copy');
+  if(copy){
+    copy.style.setProperty('display','block','important');
+    copy.style.setProperty('min-width','0','important');
+  }
+
+  const decorativeIcon=card.querySelector('.appearance-icon');
+  if(decorativeIcon)decorativeIcon.style.setProperty('display','none','important');
+
+  const helper=copy?.querySelector('small');
+  if(helper)helper.style.setProperty('display','none','important');
+
+  if(heading){
+    heading.style.setProperty('font-size','14px','important');
+    heading.style.setProperty('line-height','1.1','important');
+    heading.style.setProperty('margin','0','important');
+  }
+
+  const toggle=card.querySelector('.theme-toggle');
+  if(toggle){
+    toggle.style.setProperty('width','116px','important');
+    toggle.style.setProperty('min-width','116px','important');
+    toggle.style.setProperty('display','grid','important');
+    toggle.style.setProperty('grid-template-columns','1fr 1fr','important');
+    toggle.style.setProperty('gap','2px','important');
+    toggle.style.setProperty('padding','3px','important');
+    toggle.style.setProperty('margin','0','important');
+    toggle.style.setProperty('border-radius','11px','important');
+  }
+
+  toggle?.querySelectorAll('button').forEach(button=>{
+    button.style.setProperty('min-height','30px','important');
+    button.style.setProperty('height','30px','important');
+    button.style.setProperty('padding','4px 7px','important');
+    button.style.setProperty('border-radius','8px','important');
+    button.style.setProperty('font-size','10px','important');
+    button.style.setProperty('line-height','1','important');
+    button.style.setProperty('gap','0','important');
+  });
+
+  toggle?.querySelectorAll('.app-icon').forEach(icon=>icon.style.setProperty('display','none','important'));
 }
 
 function pruneSupabaseStatus(root=document){
