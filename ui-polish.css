@@ -210,10 +210,317 @@ html[data-theme="light"] .reclaim-wheel-item.is-selected{
   color:#241b34!important;
 }
 
+/* Country selection: keep the native select as the form value, but present it as a Reclaim bottom sheet. */
+.reclaim-country-field{
+  position:relative;
+}
+.reclaim-country-native{
+  display:none!important;
+}
+.reclaim-country-trigger{
+  width:100%;
+  min-height:66px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 16px;
+  border:1px solid #303038;
+  border-radius:17px;
+  background:linear-gradient(145deg,#151518,#101012);
+  color:#fff;
+  text-align:left;
+  cursor:pointer;
+  box-shadow:inset 0 1px rgba(255,255,255,.025);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .12s ease;
+}
+.reclaim-country-trigger:active{transform:scale(.99)}
+.reclaim-country-trigger:focus-visible,
+.reclaim-country-trigger.is-open{
+  outline:none;
+  border-color:#7657d8;
+  box-shadow:0 0 0 1px rgba(141,104,255,.16),inset 0 0 20px rgba(108,60,255,.07);
+}
+.reclaim-country-trigger-copy{
+  display:grid;
+  gap:5px;
+  min-width:0;
+}
+.reclaim-country-trigger-copy small{
+  color:#916dff;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:1.05px;
+  line-height:1;
+}
+.reclaim-country-trigger-copy strong{
+  overflow:hidden;
+  color:#fff;
+  font-size:15px;
+  line-height:1.15;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.reclaim-country-chevron{
+  flex:0 0 auto;
+  color:#a98fff;
+  font-size:24px;
+  transition:transform .2s ease;
+}
+.reclaim-country-trigger.is-open .reclaim-country-chevron{transform:rotate(180deg)}
+.reclaim-country-field .currency-preview{
+  margin-top:1px;
+  padding-left:3px;
+}
+body.reclaim-country-sheet-open{
+  overflow:hidden;
+}
+.reclaim-country-backdrop{
+  position:fixed;
+  z-index:70;
+  inset:0;
+  background:rgba(0,0,0,.68);
+  opacity:0;
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+  transition:opacity .22s ease;
+}
+.reclaim-country-backdrop.is-open{opacity:1}
+.reclaim-country-sheet{
+  position:fixed;
+  z-index:71;
+  left:50%;
+  bottom:0;
+  width:min(100%,430px);
+  max-height:min(78dvh,640px);
+  display:flex;
+  flex-direction:column;
+  padding:8px 18px calc(20px + env(safe-area-inset-bottom));
+  overflow:hidden;
+  border:1px solid #302846;
+  border-bottom:0;
+  border-radius:28px 28px 0 0;
+  background:
+    radial-gradient(circle at 85% -5%,rgba(108,60,255,.23),transparent 34%),
+    linear-gradient(180deg,#17151c 0%,#0d0d10 38%,#09090b 100%);
+  box-shadow:0 -20px 55px rgba(0,0,0,.55),0 -4px 28px rgba(108,60,255,.10);
+  transform:translate(-50%,100%);
+  transition:transform .24s cubic-bezier(.2,.75,.25,1);
+}
+.reclaim-country-sheet.is-open{transform:translate(-50%,0)}
+.reclaim-country-handle{
+  min-height:28px;
+  display:grid;
+  place-items:center;
+  touch-action:none;
+  cursor:grab;
+}
+.reclaim-country-handle:active{cursor:grabbing}
+.reclaim-country-handle span{
+  width:42px;
+  height:4px;
+  border-radius:999px;
+  background:#4b4852;
+}
+.reclaim-country-sheet-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:1px 2px 13px;
+}
+.reclaim-country-sheet-header h2{
+  margin:5px 0 0;
+  color:#fff;
+  font-size:34px;
+  line-height:.9;
+}
+.reclaim-country-close{
+  width:42px;
+  height:42px;
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  border:1px solid #333039;
+  border-radius:14px;
+  background:#151419;
+  color:#c8b7ff;
+  cursor:pointer;
+}
+.reclaim-country-close:focus-visible{
+  outline:2px solid #8d68ff;
+  outline-offset:2px;
+}
+.reclaim-country-search{
+  min-height:50px;
+  display:flex;
+  grid-template-columns:none!important;
+  align-items:center;
+  gap:10px;
+  margin:0 0 12px;
+  padding:0 14px;
+  border:1px solid #2d2935;
+  border-radius:15px;
+  background:#111014;
+}
+.reclaim-country-search>.material-symbols-rounded{
+  flex:0 0 auto;
+  color:#81778f;
+  font-size:21px;
+}
+.reclaim-country-search input{
+  width:100%;
+  min-width:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#fff;
+  font:14px/1.2 var(--body);
+  appearance:none;
+}
+.reclaim-country-search input::-webkit-search-cancel-button{display:none}
+.reclaim-country-search input::placeholder{color:#726d78}
+.reclaim-country-search:focus-within{
+  border-color:#5c4598;
+  box-shadow:inset 0 0 18px rgba(108,60,255,.06);
+}
+.reclaim-country-list{
+  min-height:150px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:0 2px 4px;
+  scrollbar-width:thin;
+  scrollbar-color:#41365d transparent;
+}
+.reclaim-country-list::-webkit-scrollbar{width:6px}
+.reclaim-country-list::-webkit-scrollbar-thumb{border-radius:999px;background:#41365d}
+.reclaim-country-option{
+  width:100%;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin:0 0 5px;
+  padding:9px 13px;
+  border:1px solid transparent;
+  border-radius:15px;
+  background:transparent;
+  color:#d8d5de;
+  text-align:left;
+  cursor:pointer;
+  transition:background .14s ease,border-color .14s ease,transform .1s ease;
+}
+.reclaim-country-option:active{transform:scale(.99)}
+.reclaim-country-option-copy{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+.reclaim-country-option-copy strong{
+  overflow:hidden;
+  color:inherit;
+  font-size:14px;
+  line-height:1.15;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.reclaim-country-option-copy small{
+  color:#77717f;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:1.05px;
+}
+.reclaim-country-check{
+  flex:0 0 auto;
+  color:#c1adff;
+  font-size:21px;
+  opacity:0;
+}
+.reclaim-country-option.is-selected{
+  border-color:#4b367d;
+  background:linear-gradient(90deg,rgba(108,60,255,.30),rgba(108,60,255,.10));
+  color:#fff;
+  box-shadow:inset 0 0 22px rgba(108,60,255,.08);
+}
+.reclaim-country-option.is-selected .reclaim-country-option-copy small{color:#a98fff}
+.reclaim-country-option.is-selected .reclaim-country-check{opacity:1}
+.reclaim-country-option:focus-visible{
+  outline:2px solid #8d68ff;
+  outline-offset:-2px;
+}
+.reclaim-country-empty{
+  margin:28px 0;
+  color:#77717f;
+  font-size:12px;
+  text-align:center;
+}
+
+html[data-theme="light"] .reclaim-country-trigger{
+  border-color:#d5cedd;
+  background:linear-gradient(145deg,#fff,#f6f2f8);
+  color:#211b28;
+  box-shadow:0 4px 16px rgba(52,38,66,.035);
+}
+html[data-theme="light"] .reclaim-country-trigger-copy strong{color:#211b28}
+html[data-theme="light"] .reclaim-country-trigger-copy small{color:#7250c5}
+html[data-theme="light"] .reclaim-country-chevron{color:#7656c5}
+html[data-theme="light"] .reclaim-country-backdrop{background:rgba(33,25,43,.42)}
+html[data-theme="light"] .reclaim-country-sheet{
+  border-color:#d8cee4;
+  background:
+    radial-gradient(circle at 85% -5%,rgba(118,86,197,.14),transparent 34%),
+    linear-gradient(180deg,#fff 0%,#faf7fc 45%,#f5f0f8 100%);
+  box-shadow:0 -20px 50px rgba(49,36,62,.16);
+}
+html[data-theme="light"] .reclaim-country-handle span{background:#c7bfcd}
+html[data-theme="light"] .reclaim-country-sheet-header h2{color:#211b28}
+html[data-theme="light"] .reclaim-country-close{
+  border-color:#ddd4e5;
+  background:#f8f3fb;
+  color:#7656c5;
+}
+html[data-theme="light"] .reclaim-country-search{
+  border-color:#ddd5e3;
+  background:#f7f3f9;
+}
+html[data-theme="light"] .reclaim-country-search input{color:#211b28}
+html[data-theme="light"] .reclaim-country-search input::placeholder{color:#968b9f}
+html[data-theme="light"] .reclaim-country-option{color:#4b4352}
+html[data-theme="light"] .reclaim-country-option-copy small{color:#9b90a4}
+html[data-theme="light"] .reclaim-country-option.is-selected{
+  border-color:#c7b8e8;
+  background:linear-gradient(90deg,rgba(118,86,197,.17),rgba(118,86,197,.07));
+  color:#261e31;
+}
+html[data-theme="light"] .reclaim-country-option.is-selected .reclaim-country-option-copy small{color:#7656c5}
+html[data-theme="light"] .reclaim-country-check{color:#7656c5}
+
+@media(hover:hover) and (pointer:fine){
+  .reclaim-country-trigger:hover{border-color:#4a3a6a}
+  .reclaim-country-option:hover{background:rgba(108,60,255,.08);border-color:#2e2740}
+  html[data-theme="light"] .reclaim-country-trigger:hover{border-color:#bba8da}
+  html[data-theme="light"] .reclaim-country-option:hover{background:rgba(118,86,197,.07);border-color:#e0d6e8}
+}
+
+@media(min-width:700px){
+  .reclaim-country-sheet{
+    bottom:20px;
+    border-bottom:1px solid #302846;
+    border-radius:28px;
+  }
+  html[data-theme="light"] .reclaim-country-sheet{border-bottom-color:#d8cee4}
+}
+
 @media(max-width:360px){
   .ui-compact-field>.ui-compact-value,
   .ui-compact-field input.ui-compact-value,
   .ui-compact-field select.ui-compact-value{width:104px!important;min-width:88px!important}
   .hero-runner .runner-art{right:2px!important;width:184px!important}
   .reclaim-wheel-item{font-size:21px}
+  .reclaim-country-sheet{padding-left:14px;padding-right:14px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .reclaim-country-sheet,.reclaim-country-backdrop,.reclaim-country-trigger,.reclaim-country-chevron,.reclaim-country-option{transition:none!important}
 }
