@@ -5,7 +5,7 @@ function ensureStyles(){
   const link=document.createElement('link');
   link.id=UI_STYLESHEET_ID;
   link.rel='stylesheet';
-  link.href='ui-polish.css?v=ui-cleanup-1';
+  link.href='ui-polish.css?v=ui-cleanup-2';
   document.head.appendChild(link);
 }
 
@@ -49,13 +49,106 @@ function pruneSupabaseStatus(root=document){
   if(parent&&parent.children.length===1)parent.setAttribute('data-ui-supabase-status','');
 }
 
+function enhanceQuitDatePicker(root=document){
+  const picker=root.querySelector('.quit-picker:not([data-centered-wheels])');
+  if(!picker)return;
+  picker.setAttribute('data-centered-wheels','');
+
+  picker.querySelectorAll('select[data-wheel]').forEach(select=>{
+    const options=[...select.options];
+    if(!options.length)return;
+
+    const measuredHeight=Math.round(select.getBoundingClientRect().height)||(/month|day|year/.test(select.dataset.wheel||'')?150:112);
+    const rowHeight=44;
+    const wheel=document.createElement('div');
+    wheel.className='reclaim-wheel';
+    wheel.style.setProperty('--wheel-height',`${measuredHeight}px`);
+    wheel.style.setProperty('--wheel-row',`${rowHeight}px`);
+    wheel.dataset.wheelUi=select.dataset.wheel||'';
+
+    const scroller=document.createElement('div');
+    scroller.className='reclaim-wheel-scroller';
+    scroller.tabIndex=0;
+    scroller.setAttribute('role','listbox');
+    scroller.setAttribute('aria-label',`${select.dataset.wheel||'Date'} picker`);
+
+    const track=document.createElement('div');
+    track.className='reclaim-wheel-track';
+
+    options.forEach((option,index)=>{
+      const item=document.createElement('button');
+      item.type='button';
+      item.className='reclaim-wheel-item';
+      item.dataset.value=option.value;
+      item.dataset.index=String(index);
+      item.textContent=option.textContent||option.value;
+      item.setAttribute('role','option');
+      item.tabIndex=-1;
+      track.appendChild(item);
+    });
+
+    scroller.appendChild(track);
+    wheel.appendChild(scroller);
+    select.classList.add('reclaim-wheel-native');
+    select.insertAdjacentElement('afterend',wheel);
+
+    let settleTimer=0;
+    let activeIndex=Math.max(0,select.selectedIndex);
+    const items=[...track.querySelectorAll('.reclaim-wheel-item')];
+
+    const setActive=(index,{scroll=false,smooth=false,emit=true}={})=>{
+      const next=Math.max(0,Math.min(items.length-1,index));
+      activeIndex=next;
+      items.forEach((item,itemIndex)=>{
+        const selected=itemIndex===next;
+        item.classList.toggle('is-selected',selected);
+        item.setAttribute('aria-selected',selected?'true':'false');
+      });
+      if(select.selectedIndex!==next){
+        select.selectedIndex=next;
+        if(emit)select.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+      if(scroll){
+        scroller.scrollTo({top:next*rowHeight,behavior:smooth?'smooth':'auto'});
+      }
+    };
+
+    const nearestIndex=()=>Math.max(0,Math.min(items.length-1,Math.round(scroller.scrollTop/rowHeight)));
+
+    scroller.addEventListener('scroll',()=>{
+      const next=nearestIndex();
+      if(next!==activeIndex)setActive(next,{emit:true});
+      clearTimeout(settleTimer);
+      settleTimer=window.setTimeout(()=>setActive(nearestIndex(),{scroll:true,smooth:true,emit:true}),80);
+    },{passive:true});
+
+    scroller.addEventListener('keydown',event=>{
+      let next=null;
+      if(event.key==='ArrowDown')next=activeIndex+1;
+      if(event.key==='ArrowUp')next=activeIndex-1;
+      if(event.key==='Home')next=0;
+      if(event.key==='End')next=items.length-1;
+      if(next===null)return;
+      event.preventDefault();
+      setActive(next,{scroll:true,smooth:true,emit:true});
+    });
+
+    items.forEach((item,index)=>item.addEventListener('click',()=>setActive(index,{scroll:true,smooth:true,emit:true})));
+
+    setActive(activeIndex,{emit:false});
+    requestAnimationFrame(()=>setActive(activeIndex,{scroll:true,emit:false}));
+  });
+}
+
 function applyUiPolish(){
   ensureStyles();
   const app=document.getElementById('app');
-  if(!app)return;
-  markCompactFields(app);
-  markAppearance(app);
-  pruneSupabaseStatus(app);
+  if(app){
+    markCompactFields(app);
+    markAppearance(app);
+    pruneSupabaseStatus(app);
+  }
+  enhanceQuitDatePicker(document);
 }
 
 let queued=false;
@@ -68,5 +161,6 @@ function queueUiPolish(){
 applyUiPolish();
 const app=document.getElementById('app');
 if(app)new MutationObserver(queueUiPolish).observe(app,{childList:true,subtree:true});
+if(document.body)new MutationObserver(queueUiPolish).observe(document.body,{childList:true,subtree:true});
 window.addEventListener('reclaim:reload-restored',queueUiPolish);
 window.addEventListener('storage',queueUiPolish);
