@@ -9,6 +9,25 @@ if(!document.getElementById(HERO_ART_STYLESHEET_ID)){
   document.head.appendChild(link);
 }
 
+/* Material Symbols are ligature text until their webfont is ready. Keep them hidden
+   during that short window so names such as "home", "mood" and "payments" never flash. */
+function revealMaterialSymbols(){
+  document.documentElement.classList.add('reclaim-icons-ready');
+}
+if(document.fonts?.load){
+  let settled=false;
+  document.fonts.load('24px "Material Symbols Rounded"','home mood payments favorite bolt my_location')
+    .then(faces=>{
+      if(faces.length){settled=true;revealMaterialSymbols()}
+      else return document.fonts.ready.then(()=>{settled=true;revealMaterialSymbols()});
+    })
+    .catch(()=>{});
+  // Accessibility/usable fallback if the external font host is unavailable.
+  setTimeout(()=>{if(!settled)revealMaterialSymbols()},5000);
+}else{
+  revealMaterialSymbols();
+}
+
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
 const SNAPSHOT_KEY='reclaim-page-skeleton-v1';
