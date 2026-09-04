@@ -1,3 +1,7 @@
+/* Prevent Material Symbols ligature names (home, mood, payments, etc.) from flashing as plain text while the webfont loads. */
+.material-symbols-rounded{visibility:hidden}
+html.reclaim-icons-ready .material-symbols-rounded{visibility:visible}
+
 /* Compact Home mood check-in: preserve topbar symmetry and avoid Dashboard clutter. */
 .manual-checkin-button{position:relative;display:grid;place-items:center;overflow:visible}
 .manual-checkin-button .material-symbols-rounded{font-size:23px;line-height:1;color:#a98cff;font-variation-settings:'FILL' 0,'wght' 350,'GRAD' 0,'opsz' 24}
