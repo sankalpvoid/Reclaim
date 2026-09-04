@@ -119,7 +119,7 @@ html[data-theme="dark"] .hero-runner .runner-art{
 .reclaim-wheel::after{
   content:"";
   position:absolute;
-  z-index:2;
+  z-index:0;
   left:5px;
   right:5px;
   top:50%;
@@ -166,7 +166,7 @@ html[data-theme="dark"] .hero-runner .runner-art{
   cursor:pointer;
 }
 .reclaim-wheel-item.is-selected{
-  color:#fff;
+  color:#fff!important;
   opacity:1;
 }
 .reclaim-wheel-scroller:focus-visible{
@@ -196,7 +196,7 @@ html[data-theme="light"] .reclaim-wheel-item{
   color:#5f5867;
 }
 html[data-theme="light"] .reclaim-wheel-item.is-selected{
-  color:#241b34;
+  color:#241b34!important;
 }
 
 @media(max-width:360px){
