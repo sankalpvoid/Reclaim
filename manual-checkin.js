@@ -1,14 +1,5 @@
 import './ui-polish.js';
 
-const HERO_STYLESHEET_ID='reclaim-hero-alignment';
-if(!document.getElementById(HERO_STYLESHEET_ID)){
-  const link=document.createElement('link');
-  link.id=HERO_STYLESHEET_ID;
-  link.rel='stylesheet';
-  link.href='hero-alignment.css?v=hero-1';
-  document.head.appendChild(link);
-}
-
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
 const SNAPSHOT_KEY='reclaim-page-skeleton-v1';
