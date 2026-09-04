@@ -1,0 +1,19 @@
+/* Hero artwork only. Keep the existing hero layout and copy exactly as-is. */
+.hero-runner .runner-art{
+  right:8px!important;
+  top:42px!important;
+  width:252px!important;
+  height:205px!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  pointer-events:none;
+}
+
+/* Both appearances use the same geometry so only the artwork changes between themes. */
+html[data-theme="light"] .hero-runner .runner-art,
+html[data-theme="dark"] .hero-runner .runner-art{
+  right:8px!important;
+  top:42px!important;
+  width:252px!important;
+  height:205px!important;
+}
