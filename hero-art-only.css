@@ -17,3 +17,10 @@ html[data-theme="dark"] .hero-runner .runner-art{
   width:276px!important;
   height:225px!important;
 }
+
+/* Light-mode hero accents use the same strong purple as the primary CTA. */
+html[data-theme="light"] .home-screen .name-greeting,
+html[data-theme="light"] .home-screen .home-hero-copy .hero-label{
+  color:#6838f3!important;
+  text-shadow:none!important;
+}
