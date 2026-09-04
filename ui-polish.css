@@ -29,6 +29,17 @@
   grid-column:1 / 2;
 }
 
+/* Keep compact number inputs editable without browser increment/decrement spinner controls. */
+input.ui-compact-value[type="number"]{
+  appearance:textfield;
+  -moz-appearance:textfield;
+}
+input.ui-compact-value[type="number"]::-webkit-outer-spin-button,
+input.ui-compact-value[type="number"]::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+
 /* Keep date/time controls untouched; these are intentionally the visual reference. */
 .ui-compact-field input[type="date"],
 .ui-compact-field input[type="time"],
