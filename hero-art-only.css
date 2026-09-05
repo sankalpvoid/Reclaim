@@ -23,7 +23,7 @@ html[data-theme="dark"] .hero-runner .runner-art{
 @media (max-width: 600px){
   html[data-theme="dark"] .hero-runner .runner-art{
     width:190px!important;
-    height:165px!important;
+    height:175px!important;
     right:0px!important;
     top:52px!important;
   }
@@ -32,7 +32,7 @@ html[data-theme="dark"] .hero-runner .runner-art{
 @media (max-width: 390px){
   html[data-theme="dark"] .hero-runner .runner-art{
     width:180px!important;
-    height:165px!important;
+    height:175px!important;
     right:1px!important;
     top:56px!important;
   }
