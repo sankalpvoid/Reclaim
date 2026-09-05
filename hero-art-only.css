@@ -9,7 +9,7 @@
   pointer-events:none;
 }
 
-/* Both appearances use the same geometry so only the artwork changes between themes. */
+/* Both appearances use the same desktop/tablet geometry. */
 html[data-theme="light"] .hero-runner .runner-art,
 html[data-theme="dark"] .hero-runner .runner-art{
   right:8px!important;
@@ -18,28 +18,23 @@ html[data-theme="dark"] .hero-runner .runner-art{
   height:225px!important;
 }
 
-/* Phone hero: use a smaller runner and push it farther right so it sits beside
-   the day count instead of crowding the copy. Desktop/tablet geometry stays
-   exactly as above. */
+/* Phone fix: leave the light-theme hero exactly on its previous geometry.
+   Only dark mode needs a smaller artwork box, kept fully inside the hero. */
 @media (max-width: 600px){
-  .hero-runner .runner-art,
-  html[data-theme="light"] .hero-runner .runner-art,
   html[data-theme="dark"] .hero-runner .runner-art{
-    width:205px!important;
-    height:172px!important;
-    right:-18px!important;
-    top:58px!important;
+    width:176px!important;
+    height:150px!important;
+    right:2px!important;
+    top:52px!important;
   }
 }
 
 @media (max-width: 390px){
-  .hero-runner .runner-art,
-  html[data-theme="light"] .hero-runner .runner-art,
   html[data-theme="dark"] .hero-runner .runner-art{
-    width:190px!important;
-    height:160px!important;
-    right:-24px!important;
-    top:62px!important;
+    width:162px!important;
+    height:140px!important;
+    right:4px!important;
+    top:56px!important;
   }
 }
 
