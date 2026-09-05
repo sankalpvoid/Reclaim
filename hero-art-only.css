@@ -22,19 +22,19 @@ html[data-theme="dark"] .hero-runner .runner-art{
    Dark mode is only nudged 1px right and scaled down by ~1%. */
 @media (max-width: 600px){
   html[data-theme="dark"] .hero-runner .runner-art{
-    width:240px!important;
-    height:220px!important;
+    width:230px!important;
+    height:210px!important;
     right:0px!important;
-    top:40px!important;
+    top:35px!important;
   }
 }
 
 @media (max-width: 390px){
   html[data-theme="dark"] .hero-runner .runner-art{
-    width:240px!important;
-    height:220px!important;
+    width:230px!important;
+    height:210px!important;
     right:1px!important;
-    top:40px!important;
+    top:35px!important;
   }
 }
 
