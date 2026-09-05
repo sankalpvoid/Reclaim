@@ -32,8 +32,8 @@ html[data-theme="dark"] .hero-runner .runner-art{
 @media (max-width: 390px){
   html[data-theme="dark"] .hero-runner .runner-art{
     width:160.38px!important;
-    height:138.6px!important;
-    right:3px!important;
+    height:140px!important;
+    right:2px!important;
     top:56px!important;
   }
 }
