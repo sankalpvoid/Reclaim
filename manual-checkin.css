@@ -9,3 +9,21 @@ html.reclaim-icons-ready .material-symbols-rounded{visibility:visible}
 .manual-checkin-button:active{transform:scale(.94)}
 html[data-theme="light"] .manual-checkin-button .material-symbols-rounded{color:#7654d8}
 html[data-theme="light"] .manual-checkin-button::after{border-color:rgba(118,84,216,.22)}
+
+/* Home hero: preserve the 430px reference composition while scaling the runner
+   down on real phone viewports so the artwork never crowds the day count. */
+@media (max-width:430px){
+  .hero-runner .runner-art{
+    width:clamp(208px,58vw,250px)!important;
+    height:clamp(178px,50vw,215px)!important;
+    right:-2px!important;
+    top:22px!important;
+    object-fit:contain!important;
+    object-position:center center!important;
+  }
+}
+
+@media (max-width:370px){
+  .home-days{font-size:116px;letter-spacing:-1.5px}
+  .home-hero-copy{width:168px}
+}
