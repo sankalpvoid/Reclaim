@@ -10,20 +10,27 @@ html.reclaim-icons-ready .material-symbols-rounded{visibility:visible}
 html[data-theme="light"] .manual-checkin-button .material-symbols-rounded{color:#7654d8}
 html[data-theme="light"] .manual-checkin-button::after{border-color:rgba(118,84,216,.22)}
 
-/* Home hero: preserve the 430px reference composition while scaling the runner
-   down on real phone viewports so the artwork never crowds the day count. */
-@media (max-width:430px){
+/* Home hero: laptop/desktop keeps the 430px reference composition. On touch-sized
+   viewports the runner is deliberately capped so it cannot dominate the day count. */
+@media (max-width:768px){
   .hero-runner .runner-art{
-    width:clamp(208px,58vw,250px)!important;
-    height:clamp(178px,50vw,215px)!important;
-    right:-2px!important;
-    top:22px!important;
+    width:min(52vw,205px)!important;
+    height:min(44vw,174px)!important;
+    right:-4px!important;
+    top:34px!important;
     object-fit:contain!important;
     object-position:center center!important;
   }
+  .home-hero-copy{width:165px}
 }
 
-@media (max-width:370px){
+@media (max-width:390px){
+  .hero-runner .runner-art{
+    width:min(50vw,190px)!important;
+    height:min(43vw,164px)!important;
+    right:-8px!important;
+    top:38px!important;
+  }
   .home-days{font-size:116px;letter-spacing:-1.5px}
-  .home-hero-copy{width:168px}
+  .home-hero-copy{width:158px}
 }
