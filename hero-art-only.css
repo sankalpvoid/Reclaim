@@ -22,8 +22,8 @@ html[data-theme="dark"] .hero-runner .runner-art{
    Dark mode is only nudged 1px right and scaled down by ~1%. */
 @media (max-width: 600px){
   html[data-theme="dark"] .hero-runner .runner-art{
-    width:177px!important;
-    height:150px!important;
+    width:190px!important;
+    height:165px!important;
     right:0px!important;
     top:52px!important;
   }
@@ -31,8 +31,8 @@ html[data-theme="dark"] .hero-runner .runner-art{
 
 @media (max-width: 390px){
   html[data-theme="dark"] .hero-runner .runner-art{
-    width:165px!important;
-    height:150px!important;
+    width:180px!important;
+    height:165px!important;
     right:1px!important;
     top:56px!important;
   }
