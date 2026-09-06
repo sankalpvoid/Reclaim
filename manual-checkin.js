@@ -95,6 +95,12 @@ function syncButton(){
   button.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">mood</span>';
 }
 
+function currentLocalDateTimeValue(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 let queued=false;
 function queueSync(){
   if(queued)return;
@@ -103,6 +109,14 @@ function queueSync(){
 }
 
 document.addEventListener('click',event=>{
+  const quitPickerButton=event.target.closest('[data-open-quit-picker]');
+  if(quitPickerButton){
+    const input=document.querySelector('#quit-at-value');
+    if(input)input.value=currentLocalDateTimeValue();
+    const label=document.querySelector('[data-quit-date-label]');
+    if(label)label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date());
+  }
+
   const button=event.target.closest(`[${BUTTON_ATTR}]`);
   if(!button)return;
   event.preventDefault();
