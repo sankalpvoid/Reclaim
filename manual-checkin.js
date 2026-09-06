@@ -30,62 +30,49 @@ function constrainQuitPickerFuture(){
   Array.from(yearSelect.options).forEach(o=>o.disabled=+o.value>now.getFullYear());
   const year=+yearSelect.value;Array.from(monthSelect.options).forEach(o=>o.disabled=year===now.getFullYear()&&+o.value>now.getMonth());
   const month=+monthSelect.value,maxDay=new Date(year,month+1,0).getDate();Array.from(daySelect.options).forEach(o=>{const v=+o.value;o.disabled=v>maxDay||(year===now.getFullYear()&&month===now.getMonth()&&v>now.getDate())});
-  const day=+daySelect.value,isToday=year===now.getFullYear()&&month===now.getMonth()&&day===now.getDate();Array.from(periodSelect.options).forEach(o=>o.disabled=isToday&&now.getHours()<12&&o.value==='PM');
+  const day=+daySelect.value,isToday=year===now.getFullYear()&&month===now.getMonth()&&day===now.getDate();
+  Array.from(periodSelect.options).forEach(o=>o.disabled=isToday&&now.getHours()<12&&o.value==='PM');
   const period=periodSelect.value;Array.from(hourSelect.options).forEach(o=>{let h=(+o.value)%12;if(period==='PM')h+=12;o.disabled=isToday&&h>now.getHours()});
   let selectedHour=(+hourSelect.value)%12;if(period==='PM')selectedHour+=12;Array.from(minuteSelect.options).forEach(o=>o.disabled=isToday&&selectedHour===now.getHours()&&+o.value>now.getMinutes());
 }
 
-function ensureWheelStyles(){
-  if(document.getElementById('reclaim-deterministic-wheel-style'))return;
-  const style=document.createElement('style');style.id='reclaim-deterministic-wheel-style';style.textContent=`
-    .quit-picker .reclaim-native-wheel{display:none!important}
-    .quit-picker .reclaim-wheel-window{height:100%;min-height:0;display:grid;grid-template-rows:1fr 1fr 1fr;align-items:stretch;overflow:hidden;border-radius:inherit;touch-action:pan-y;user-select:none}
-    .quit-picker .reclaim-wheel-row{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:26px;color:rgba(255,255,255,.34);cursor:pointer;transition:.12s ease}
-    .quit-picker .reclaim-wheel-row.current{font-size:30px;color:#fff;background:linear-gradient(180deg,rgba(123,118,132,.78),rgba(91,87,99,.78))}
-    .quit-picker .reclaim-wheel-row.disabled{opacity:.15;pointer-events:none}
-    html[data-theme='light'] .quit-picker .reclaim-wheel-row{color:rgba(35,27,45,.34)}
-    html[data-theme='light'] .quit-picker .reclaim-wheel-row.current{color:#18131f;background:linear-gradient(180deg,rgba(221,216,229,.95),rgba(205,198,216,.95))}
-  `;document.head.appendChild(style)
-}
-
-function nearestEnabledIndex(select,start,direction){
-  let i=start+direction;
-  while(i>=0&&i<select.options.length){if(!select.options[i].disabled)return i;i+=direction}
-  return -1;
-}
-function refreshWheelWindow(select){
-  const windowEl=select?.parentElement?.querySelector('.reclaim-wheel-window');if(!windowEl)return;
-  const current=select.selectedIndex,prev=nearestEnabledIndex(select,current,-1),next=nearestEnabledIndex(select,current,1);
-  const rows=[['prev',prev],['current',current],['next',next]];
-  rows.forEach(([name,index],slot)=>{const row=windowEl.children[slot],option=index>=0?select.options[index]:null;row.className=`reclaim-wheel-row ${name==='current'?'current':''} ${option?'':'disabled'}`;row.textContent=option?.textContent||'';row.dataset.index=option?String(index):''});
-}
-function refreshAllWheelWindows(){document.querySelectorAll('.quit-picker select[data-wheel]').forEach(refreshWheelWindow)}
-function stepWheel(select,direction){
-  const next=nearestEnabledIndex(select,select.selectedIndex,direction);if(next<0)return;select.selectedIndex=next;select.dispatchEvent(new Event('change',{bubbles:true}));
-}
-function buildWheelWindow(select){
-  if(select.dataset.customized==='true')return;select.dataset.customized='true';select.classList.add('reclaim-native-wheel');
-  const windowEl=document.createElement('div');windowEl.className='reclaim-wheel-window';select.insertAdjacentElement('afterend',windowEl);
-  for(let i=0;i<3;i++){const row=document.createElement('div');row.className='reclaim-wheel-row';windowEl.appendChild(row)}
-  windowEl.children[0].onclick=()=>stepWheel(select,-1);windowEl.children[2].onclick=()=>stepWheel(select,1);
-  windowEl.addEventListener('wheel',e=>{e.preventDefault();stepWheel(select,e.deltaY>0?1:-1)},{passive:false});
-  let y=null;windowEl.addEventListener('touchstart',e=>{y=e.touches[0]?.clientY??null},{passive:true});windowEl.addEventListener('touchend',e=>{if(y==null)return;const end=e.changedTouches[0]?.clientY??y,delta=end-y;if(Math.abs(delta)>18)stepWheel(select,delta<0?1:-1);y=null},{passive:true});
-  refreshWheelWindow(select)
-}
-function enhanceQuitPicker(){
-  const picker=document.querySelector('.quit-picker');if(!picker||picker.dataset.deterministicWheels==='true')return;picker.dataset.deterministicWheels='true';ensureWheelStyles();picker.querySelectorAll('select[data-wheel]').forEach(buildWheelWindow);refreshAllWheelWindows()
+function rotateSelectToValue(select,value){
+  if(!select)return;
+  const options=Array.from(select.options),target=options.find(o=>o.value===String(value));
+  if(!target)return;
+  const targetIndex=options.indexOf(target);
+  const reordered=[...options.slice(targetIndex).reverse(),...options.slice(0,targetIndex).reverse()];
+  reordered.forEach(option=>select.appendChild(option));
+  select.value=String(value);
+  select.selectedIndex=0;
 }
 
 function initializeQuitPickerToNow(){
   const picker=document.querySelector('.quit-picker');if(!picker||picker.dataset.currentInitialized==='true')return;picker.dataset.currentInitialized='true';
-  const now=new Date(),hour24=now.getHours();setWheelValue('month',now.getMonth());setWheelValue('day',now.getDate());setWheelValue('year',now.getFullYear());setWheelValue('hour',hour24%12||12);setWheelValue('minute',now.getMinutes());setWheelValue('period',hour24>=12?'PM':'AM');constrainQuitPickerFuture();enhanceQuitPicker();refreshAllWheelWindows();
-  picker.querySelectorAll('select[data-wheel]').forEach(select=>select.addEventListener('change',()=>{constrainQuitPickerFuture();refreshAllWheelWindows()}))
+  const now=new Date(),hour24=now.getHours(),hour12=hour24%12||12,period=hour24>=12?'PM':'AM';
+  setWheelValue('month',now.getMonth());setWheelValue('day',now.getDate());setWheelValue('year',now.getFullYear());setWheelValue('hour',hour12);setWheelValue('minute',now.getMinutes());setWheelValue('period',period);
+  constrainQuitPickerFuture();
+  // Native list-style selects always open their visible viewport at the first option in Chromium.
+  // Put the current value first instead of trying to force-scroll the browser's internal viewport.
+  rotateSelectToValue(wheel('month'),now.getMonth());
+  rotateSelectToValue(wheel('day'),now.getDate());
+  rotateSelectToValue(wheel('year'),now.getFullYear());
+  rotateSelectToValue(wheel('hour'),hour12);
+  rotateSelectToValue(wheel('minute'),now.getMinutes());
+  rotateSelectToValue(wheel('period'),period);
+  constrainQuitPickerFuture();
+  picker.querySelectorAll('select[data-wheel]').forEach(select=>select.addEventListener('change',constrainQuitPickerFuture));
 }
 
 let queued=false;function queueSync(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;syncButton();initializeQuitPickerToNow()})}
+
 document.addEventListener('click',event=>{
-  const quitPickerButton=event.target.closest('[data-open-quit-picker]');if(quitPickerButton){const now=new Date(),input=document.querySelector('#quit-at-value'),label=document.querySelector('[data-quit-date-label]');if(input)input.value=currentLocalDateTimeValue(now);if(label)label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(now)}
-  const apply=event.target.closest('[data-apply-quit-date]');if(apply){const chosen=selectedQuitDate();if(chosen&&chosen.getTime()>Date.now()){event.preventDefault();event.stopImmediatePropagation();const now=new Date(),h=now.getHours();setWheelValue('month',now.getMonth());setWheelValue('day',now.getDate());setWheelValue('year',now.getFullYear());setWheelValue('hour',h%12||12);setWheelValue('minute',now.getMinutes());setWheelValue('period',h>=12?'PM':'AM');constrainQuitPickerFuture();refreshAllWheelWindows();apply.textContent='FUTURE TIME NOT ALLOWED';setTimeout(()=>{if(document.body.contains(apply))apply.textContent='SET THIS MOMENT'},1400);return}}
+  const quitPickerButton=event.target.closest('[data-open-quit-picker]');
+  if(quitPickerButton){const now=new Date(),input=document.querySelector('#quit-at-value'),label=document.querySelector('[data-quit-date-label]');if(input)input.value=currentLocalDateTimeValue(now);if(label)label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(now)}
+
+  const apply=event.target.closest('[data-apply-quit-date]');
+  if(apply){const chosen=selectedQuitDate();if(chosen&&chosen.getTime()>Date.now()){event.preventDefault();event.stopImmediatePropagation();const now=new Date(),h=now.getHours();setWheelValue('month',now.getMonth());setWheelValue('day',now.getDate());setWheelValue('year',now.getFullYear());setWheelValue('hour',h%12||12);setWheelValue('minute',now.getMinutes());setWheelValue('period',h>=12?'PM':'AM');constrainQuitPickerFuture();apply.textContent='FUTURE TIME NOT ALLOWED';setTimeout(()=>{if(document.body.contains(apply))apply.textContent='SET THIS MOMENT'},1400);return}}
+
   const button=event.target.closest(`[${BUTTON_ATTR}]`);if(!button)return;event.preventDefault();event.stopImmediatePropagation();openMoodCheckin()
 },true);
 
