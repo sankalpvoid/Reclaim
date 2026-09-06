@@ -98,26 +98,18 @@ function setWheelValue(name,value){
   if(!select)return;
   const index=Array.from(select.options).findIndex(option=>option.value===String(value));
   if(index<0)return;
-  // Force a real selectedIndex transition. Chromium size-selects sometimes keep the
-  // visual viewport parked at option 0 when only .value is assigned.
-  if(select.selectedIndex===index&&index!==0)select.selectedIndex=0;
   select.selectedIndex=index;
   select.value=String(value);
 }
 
 function centerWheel(select){
   if(!select||select.selectedIndex<0)return;
-  const option=select.options[select.selectedIndex];
-  if(!option)return;
-  const optionHeight=option.offsetHeight||Math.max(1,select.clientHeight/Math.max(1,+select.size||5));
-  const desired=Math.max(0,option.offsetTop-(select.clientHeight-optionHeight)/2);
-  select.scrollTop=desired;
-  // Some browsers only recalculate a size-select's visible window after its size is
-  // toggled. Do that invisibly, then restore the original size and scroll position.
-  const originalSize=select.size||5;
-  select.size=1;
-  select.size=originalSize;
-  select.scrollTop=desired;
+  const visibleRows=Math.max(1,+select.size||5);
+  const rowHeight=Math.max(1,select.clientHeight/visibleRows);
+  const firstVisible=Math.max(0,select.selectedIndex-Math.floor(visibleRows/2));
+  // OPTION.offsetTop is unreliable inside native <select size> controls in Chromium.
+  // Scroll from the selected index instead, which reliably opens the list around it.
+  select.scrollTop=firstVisible*rowHeight;
 }
 
 function centerQuitPickerWheels(){
@@ -165,8 +157,7 @@ function constrainQuitPickerFuture(){
 
 function initializeQuitPickerToNow(){
   const picker=document.querySelector('.quit-picker');
-  if(!picker||picker.dataset.currentInitialized==='true')return;
-  picker.dataset.currentInitialized='true';
+  if(!picker)return;
   const now=new Date();
   const hour24=now.getHours();
   setWheelValue('month',now.getMonth());
@@ -176,19 +167,22 @@ function initializeQuitPickerToNow(){
   setWheelValue('minute',now.getMinutes());
   setWheelValue('period',hour24>=12?'PM':'AM');
   constrainQuitPickerFuture();
-  const recenter=()=>{
-    centerQuitPickerWheels();
-    requestAnimationFrame(centerQuitPickerWheels);
-  };
+
+  const recenter=()=>centerQuitPickerWheels();
   requestAnimationFrame(()=>requestAnimationFrame(recenter));
-  setTimeout(recenter,50);
-  setTimeout(recenter,160);
-  picker.querySelectorAll('select[data-wheel]').forEach(select=>{
-    select.addEventListener('change',()=>{
-      constrainQuitPickerFuture();
-      requestAnimationFrame(()=>centerWheel(select));
+  setTimeout(recenter,40);
+  setTimeout(recenter,120);
+  setTimeout(recenter,300);
+
+  if(picker.dataset.currentInitialized!=='true'){
+    picker.dataset.currentInitialized='true';
+    picker.querySelectorAll('select[data-wheel]').forEach(select=>{
+      select.addEventListener('change',()=>{
+        constrainQuitPickerFuture();
+        requestAnimationFrame(()=>centerWheel(select));
+      });
     });
-  });
+  }
 }
 
 let queued=false;
@@ -243,9 +237,6 @@ document.addEventListener('click',event=>{
 syncButton();
 const app=document.querySelector('#app');
 if(app)new MutationObserver(queueSync).observe(app,{childList:true,subtree:true});
-// The quit-date modal is appended directly to <body>, not inside #app. Watching the
-// body makes initialization independent of click bubbling/order, which is why the old
-// hook could miss the modal and leave every wheel visually parked at its first option.
 new MutationObserver(()=>initializeQuitPickerToNow()).observe(document.body,{childList:true,subtree:true});
 window.addEventListener('storage',queueSync);
 window.addEventListener('reclaim:reload-restored',queueSync);
