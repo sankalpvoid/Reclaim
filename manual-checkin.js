@@ -14,7 +14,7 @@ if(!document.getElementById(QUIT_WHEEL_STYLESHEET_ID)){
   const link=document.createElement('link');
   link.id=QUIT_WHEEL_STYLESHEET_ID;
   link.rel='stylesheet';
-  link.href='manual-checkin.css?v=quit-wheel-4';
+  link.href='manual-checkin.css?v=quit-wheel-5';
   document.head.appendChild(link);
 }
 
@@ -87,12 +87,16 @@ function openQuitWheelPicker(){
   function centerWheel(name,behavior='auto'){
     const wheel=getWheel(name);if(!wheel)return;
     const index=itemIndexFor(wheel,selected[name]);if(index<0)return;
-    wheel.scrollTo({top:index*WHEEL_ITEM_HEIGHT,behavior});paintWheel(wheel,index);
+    if(behavior==='auto')wheel.scrollTop=index*WHEEL_ITEM_HEIGHT;
+    else wheel.scrollTo({top:index*WHEEL_ITEM_HEIGHT,behavior});
+    paintWheel(wheel,index);
   }
   function rebuildDayWheel(){
     const old=getWheel('day');if(!old)return;
     const max=daysInMonth(selected.year,selected.month);if(selected.day>max)selected.day=max;
-    const holder=document.createElement('div');holder.innerHTML=wheelMarkup('day');old.replaceWith(holder.firstElementChild);wireWheel(getWheel('day'));centerWheel('day');
+    const holder=document.createElement('div');holder.innerHTML=wheelMarkup('day');old.replaceWith(holder.firstElementChild);
+    centerWheel('day');
+    wireWheel(getWheel('day'));
   }
   function clampFuture(){
     if(candidateDate().getTime()<=now.getTime())return false;
@@ -115,8 +119,8 @@ function openQuitWheelPicker(){
     wheel.addEventListener('click',event=>{const item=event.target.closest('.reclaim-wheel-item');if(!item)return;const items=[...wheel.querySelectorAll('.reclaim-wheel-item')],index=items.indexOf(item);if(index<0)return;wheel.scrollTo({top:index*WHEEL_ITEM_HEIGHT,behavior:'smooth'});clearTimeout(timer);timer=setTimeout(()=>settleWheel(wheel),180)});
   }
 
+  ['month','day','year','hour','minute','period'].forEach(name=>centerWheel(name));
   modal.querySelectorAll('.reclaim-wheel').forEach(wireWheel);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>['month','day','year','hour','minute','period'].forEach(name=>centerWheel(name))));
   modal.querySelector('.reclaim-quit-wheel-close').onclick=closeQuitWheelPicker;
   modal.addEventListener('click',event=>{if(event.target===modal)closeQuitWheelPicker()});
   modal.querySelector('.reclaim-quit-wheel-apply').onclick=()=>{
