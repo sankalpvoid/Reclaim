@@ -21,11 +21,13 @@ html[data-theme="light"] .manual-checkin-button::after{border-color:rgba(118,84,
 .reclaim-wheel-labels-time{margin-top:18px}
 .reclaim-wheel-labels span{text-align:center;color:#777;font:700 10px/1 Inter,sans-serif;letter-spacing:.13em}
 .reclaim-wheel-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;position:relative}
+.reclaim-wheel-row::before,.reclaim-wheel-row::after{content:none!important;display:none!important;background:none!important;border:0!important;box-shadow:none!important}
 .reclaim-wheel{position:relative;height:144px;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-y;mask-image:linear-gradient(to bottom,transparent 0,#000 26%,#000 74%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26%,#000 74%,transparent 100%)}
 .reclaim-wheel::-webkit-scrollbar{display:none}
 .reclaim-wheel-pad{height:48px;pointer-events:none}
 .reclaim-wheel-item,.reclaim-wheel-item:hover,.reclaim-wheel-item:focus,.reclaim-wheel-item:focus-visible,.reclaim-wheel-item:active,.reclaim-wheel-item[aria-selected="true"]{box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:100%;height:48px;padding:0;border:0!important;border-radius:0!important;background:none!important;background-color:transparent!important;background-image:none!important;outline:0!important;box-shadow:none!important;color:rgba(255,255,255,.30);font:700 18px/1 Inter,sans-serif;letter-spacing:.01em;scroll-snap-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;transition:color .14s ease,opacity .14s ease,transform .14s ease}
 .reclaim-wheel-item.is-selected,.reclaim-wheel-item.is-selected:hover,.reclaim-wheel-item.is-selected:active,.reclaim-wheel-item[aria-selected="true"]{color:#fff!important;font-size:22px;font-weight:800;transform:scale(1.045);background:none!important;background-color:transparent!important;background-image:none!important;outline:0!important;box-shadow:none!important}
+.reclaim-wheel-item::before,.reclaim-wheel-item::after{content:none!important;display:none!important}
 .reclaim-wheel-item::selection{background:transparent;color:inherit}
 .reclaim-quit-wheel-note{margin:15px 2px 17px;text-align:center;color:#6f6f73;font:600 11px/1.3 Inter,sans-serif}
 .reclaim-quit-wheel-apply{width:100%;min-height:57px;border:0;border-radius:15px;background:linear-gradient(135deg,#6434ff,#8147e8);color:#fff;font:800 16px/1 Inter,sans-serif;cursor:pointer;box-shadow:0 9px 24px rgba(103,58,255,.22)}
