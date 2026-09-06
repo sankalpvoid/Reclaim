@@ -9,6 +9,15 @@ if(!document.getElementById(HERO_ART_STYLESHEET_ID)){
   document.head.appendChild(link);
 }
 
+const QUIT_WHEEL_STYLESHEET_ID='reclaim-quit-wheel-styles';
+if(!document.getElementById(QUIT_WHEEL_STYLESHEET_ID)){
+  const link=document.createElement('link');
+  link.id=QUIT_WHEEL_STYLESHEET_ID;
+  link.rel='stylesheet';
+  link.href='manual-checkin.css?v=quit-wheel-4';
+  document.head.appendChild(link);
+}
+
 function revealMaterialSymbols(){document.documentElement.classList.add('reclaim-icons-ready')}
 if(document.fonts?.load){let settled=false;document.fonts.load('24px "Material Symbols Rounded"','home mood payments favorite bolt my_location').then(faces=>{if(faces.length){settled=true;revealMaterialSymbols()}else return document.fonts.ready.then(()=>{settled=true;revealMaterialSymbols()})}).catch(()=>{});setTimeout(()=>{if(!settled)revealMaterialSymbols()},5000)}else revealMaterialSymbols();
 
