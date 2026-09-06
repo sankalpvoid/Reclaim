@@ -38,8 +38,19 @@ html[data-theme="light"] .manual-checkin-button::after{border-color:rgba(118,84,
 .reclaim-calendar-head{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:8px;margin-bottom:10px}
 .reclaim-calendar-head>button{display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:rgba(255,255,255,.018);color:#bba7ed;cursor:pointer}
 .reclaim-calendar-head>button .material-symbols-rounded{font-size:19px}
-.reclaim-calendar-title{display:flex;align-items:center;justify-content:center;gap:7px;color:#f3effa;font:700 13px/1 Inter,sans-serif}
-.reclaim-calendar-title select{appearance:none;-webkit-appearance:none;padding:5px 22px 5px 8px;border:1px solid rgba(145,109,236,.24);border-radius:8px;background:#121018;color:#cbbdf0;font:700 12px/1 Inter,sans-serif;background-image:linear-gradient(45deg,transparent 50%,#8f73ce 50%),linear-gradient(135deg,#8f73ce 50%,transparent 50%);background-position:calc(100% - 11px) 10px,calc(100% - 7px) 10px;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+.reclaim-calendar-title{display:flex;align-items:center;justify-content:center;gap:8px;color:#f3effa;font:700 13px/1 Inter,sans-serif}
+.reclaim-year-picker{position:relative}
+.reclaim-year-trigger{display:flex;align-items:center;justify-content:center;gap:4px;min-width:72px;height:30px;padding:0 8px 0 10px;border:1px solid rgba(145,109,236,.28);border-radius:9px;background:rgba(132,80,255,.06);color:#d6c9f7;font:750 12px/1 Inter,sans-serif;cursor:pointer;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.reclaim-year-trigger:hover,.reclaim-year-trigger.is-open{border-color:rgba(157,112,255,.72);background:rgba(132,80,255,.12);box-shadow:0 0 0 3px rgba(124,72,255,.07)}
+.reclaim-year-trigger .material-symbols-rounded{font-size:16px;color:#a88be7;transition:transform .15s ease}
+.reclaim-year-trigger.is-open .material-symbols-rounded{transform:rotate(180deg)}
+.reclaim-year-menu[hidden]{display:none}
+.reclaim-year-menu{position:absolute;z-index:30;top:36px;left:50%;transform:translateX(-50%);width:96px;max-height:214px;overflow-y:auto;padding:6px;border:1px solid rgba(143,109,236,.32);border-radius:13px;background:#111017;box-shadow:0 18px 42px rgba(0,0,0,.48),0 0 24px rgba(105,63,255,.08);scrollbar-width:thin;scrollbar-color:rgba(151,112,239,.42) transparent}
+.reclaim-year-menu::-webkit-scrollbar{width:5px}
+.reclaim-year-menu::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(151,112,239,.42)}
+.reclaim-year-option{display:block;width:100%;height:34px;padding:0;border:0;border-radius:9px;background:transparent;color:#9d95a9;font:700 12px/1 Inter,sans-serif;cursor:pointer;text-align:center;transition:background .12s ease,color .12s ease}
+.reclaim-year-option:hover{background:rgba(124,72,255,.08);color:#fff}
+.reclaim-year-option.is-selected{background:linear-gradient(135deg,rgba(100,52,255,.34),rgba(130,71,240,.22));color:#fff;box-shadow:inset 0 0 0 1px rgba(160,116,255,.45),0 0 12px rgba(112,67,255,.08)}
 .reclaim-calendar-weekdays,.reclaim-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .reclaim-calendar-weekdays{margin-bottom:4px}
 .reclaim-calendar-weekdays span{text-align:center;color:#5f5968;font:700 9px/1 Inter,sans-serif}
@@ -78,7 +89,11 @@ html[data-theme="light"] .reclaim-date-trigger{border-color:rgba(98,69,166,.18);
 html[data-theme="light"] .reclaim-date-trigger-copy strong{color:#251b2d}
 html[data-theme="light"] .reclaim-calendar{border-color:rgba(98,69,166,.16);background:#f4f0f8}
 html[data-theme="light"] .reclaim-calendar-title{color:#2c2134}
-html[data-theme="light"] .reclaim-calendar-title select{border-color:rgba(98,69,166,.18);background-color:#fff;color:#59486a}
+html[data-theme="light"] .reclaim-year-trigger{border-color:rgba(98,69,166,.2);background:rgba(118,84,216,.045);color:#5a4770}
+html[data-theme="light"] .reclaim-year-menu{border-color:rgba(98,69,166,.18);background:#fff;box-shadow:0 16px 34px rgba(64,42,82,.14)}
+html[data-theme="light"] .reclaim-year-option{color:#6b6074}
+html[data-theme="light"] .reclaim-year-option:hover{background:rgba(118,84,216,.06);color:#241a2c}
+html[data-theme="light"] .reclaim-year-option.is-selected{background:rgba(118,84,216,.12);color:#362444;box-shadow:inset 0 0 0 1px rgba(118,84,216,.28)}
 html[data-theme="light"] .reclaim-cal-day{color:#665d6d}
 html[data-theme="light"] .reclaim-cal-day:hover{color:#241a2c}
 html[data-theme="light"] .reclaim-time-dial::before{border-color:rgba(98,69,166,.2)}
@@ -101,6 +116,7 @@ html[data-theme="light"] .reclaim-time-note{color:#817987}
   .reclaim-time-presets{gap:5px}
   .reclaim-time-preset{height:41px;padding:0 6px;font-size:11px}
   .reclaim-time-dial{width:min(82vw,330px)}
+  .reclaim-year-menu{right:0;left:auto;transform:none}
 }
 
 @media (max-width:390px){
