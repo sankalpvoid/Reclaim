@@ -19,11 +19,37 @@ html[data-theme="light"] .manual-checkin-button::after{border-color:rgba(118,84,
 .reclaim-time-card h2{margin:0;text-align:center;font:400 39px/.95 'Bebas Neue',sans-serif;letter-spacing:.015em}
 .reclaim-time-card h2 em{color:#a970ff;font-style:normal;text-shadow:0 0 20px rgba(149,91,255,.3)}
 .reclaim-time-copy{margin:16px 0 18px;text-align:center;color:#9b98a3;font:500 14px/1.4 Inter,sans-serif}
-.reclaim-time-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.reclaim-time-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .reclaim-time-preset{min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;height:44px;border:1px solid rgba(142,111,233,.34);border-radius:999px;background:rgba(255,255,255,.018);color:#ece9f4;font:600 12px/1 Inter,sans-serif;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease}
 .reclaim-time-preset .material-symbols-rounded{font-size:17px;color:#ae8cff}
 .reclaim-time-preset:hover,.reclaim-time-preset.is-active{border-color:rgba(159,113,255,.8);background:rgba(126,72,255,.1)}
 .reclaim-time-preset:active{transform:scale(.98)}
+
+.reclaim-date-trigger{width:100%;min-height:54px;display:flex;align-items:center;gap:11px;margin:0 0 14px;padding:9px 13px;border:1px solid rgba(143,109,236,.28);border-radius:16px;background:rgba(255,255,255,.018);color:#fff;cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease}
+.reclaim-date-trigger:hover,.reclaim-date-trigger.is-open{border-color:rgba(157,112,255,.66);background:rgba(123,73,255,.07)}
+.reclaim-date-trigger>.material-symbols-rounded{font-size:21px;color:#a980ff}
+.reclaim-date-trigger-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.reclaim-date-trigger-copy strong{font:700 14px/1.1 Inter,sans-serif;color:#f6f4fb}
+.reclaim-date-trigger-copy small{font:700 9px/1 Inter,sans-serif;letter-spacing:.13em;color:#706a7b}
+.reclaim-date-trigger-arrow{font:300 24px/1 Inter,sans-serif;color:#8f7aae;transform:rotate(0);transition:transform .15s ease}
+.reclaim-date-trigger.is-open .reclaim-date-trigger-arrow{transform:rotate(90deg)}
+.reclaim-calendar[hidden]{display:none}
+.reclaim-calendar{margin:-5px 0 14px;padding:13px;border:1px solid rgba(143,109,236,.24);border-radius:17px;background:rgba(11,10,15,.96);box-shadow:inset 0 0 26px rgba(102,65,255,.035)}
+.reclaim-calendar-head{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:8px;margin-bottom:10px}
+.reclaim-calendar-head>button{display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:rgba(255,255,255,.018);color:#bba7ed;cursor:pointer}
+.reclaim-calendar-head>button .material-symbols-rounded{font-size:19px}
+.reclaim-calendar-title{display:flex;align-items:center;justify-content:center;gap:7px;color:#f3effa;font:700 13px/1 Inter,sans-serif}
+.reclaim-calendar-title select{appearance:none;-webkit-appearance:none;padding:5px 22px 5px 8px;border:1px solid rgba(145,109,236,.24);border-radius:8px;background:#121018;color:#cbbdf0;font:700 12px/1 Inter,sans-serif;background-image:linear-gradient(45deg,transparent 50%,#8f73ce 50%),linear-gradient(135deg,#8f73ce 50%,transparent 50%);background-position:calc(100% - 11px) 10px,calc(100% - 7px) 10px;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+.reclaim-calendar-weekdays,.reclaim-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.reclaim-calendar-weekdays{margin-bottom:4px}
+.reclaim-calendar-weekdays span{text-align:center;color:#5f5968;font:700 9px/1 Inter,sans-serif}
+.reclaim-cal-empty{height:32px}
+.reclaim-cal-day{height:32px;border:0;border-radius:9px;background:transparent;color:#b8b2c1;font:650 12px/1 Inter,sans-serif;cursor:pointer}
+.reclaim-cal-day:hover{background:rgba(129,78,255,.08);color:#fff}
+.reclaim-cal-day.is-selected{background:rgba(122,72,255,.17);color:#fff;box-shadow:inset 0 0 0 1px rgba(158,111,255,.68)}
+.reclaim-cal-day.is-today:not(.is-selected){box-shadow:inset 0 0 0 1px rgba(157,111,255,.24);color:#cbb6ff}
+.reclaim-cal-day:disabled{opacity:.18;cursor:not-allowed}
+
 .reclaim-time-dial{--dial-angle:0deg;position:relative;width:min(78vw,340px);aspect-ratio:1;margin:0 auto;outline:0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .reclaim-time-dial:active{cursor:grabbing}
 .reclaim-time-ring{position:absolute;inset:5px;border-radius:50%;background:repeating-conic-gradient(from -1deg,rgba(172,145,255,.9) 0 1deg,transparent 1deg 6deg);mask:radial-gradient(circle,transparent 0 88%,#000 88% 100%);-webkit-mask:radial-gradient(circle,transparent 0 88%,#000 88% 100%);opacity:.6}
@@ -36,9 +62,7 @@ html[data-theme="light"] .manual-checkin-button::after{border-color:rgba(118,84,
 .reclaim-time-value [data-time-clock]{font:400 clamp(52px,14vw,76px)/.9 'Bebas Neue',sans-serif;letter-spacing:.025em;color:#fff;text-shadow:0 0 22px rgba(137,84,255,.24)}
 .reclaim-time-value [data-time-period]{margin-bottom:6px;padding:0;border:0;background:transparent;color:#b994ff;font:700 22px/1 Inter,sans-serif;cursor:pointer}
 .reclaim-time-rule{width:76%;height:1px;margin:14px 0 10px;background:linear-gradient(90deg,transparent,rgba(139,88,255,.8),transparent);box-shadow:0 0 8px rgba(139,88,255,.3)}
-.reclaim-time-date{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 14px;border-radius:999px;color:#9e9aab;font:600 16px/1 Inter,sans-serif;letter-spacing:.02em;cursor:pointer}
-.reclaim-time-date:hover{color:#fff;background:rgba(122,74,255,.08)}
-.reclaim-time-date input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.reclaim-time-date{min-height:24px;color:#9e9aab;font:600 16px/1 Inter,sans-serif;letter-spacing:.02em}
 .reclaim-time-hint{margin-top:7px;color:#58545f;font:600 9px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase}
 .reclaim-time-note{margin:13px 0 15px;text-align:center;color:#6d6974;font:600 11px/1.3 Inter,sans-serif}
 .reclaim-time-apply{width:100%;min-height:57px;border:0;border-radius:15px;background:linear-gradient(135deg,#6434ff,#8247f0);color:#fff;font:800 16px/1 Inter,sans-serif;cursor:pointer;box-shadow:0 10px 26px rgba(103,58,255,.22)}
@@ -50,6 +74,13 @@ html[data-theme="light"] .reclaim-time-close{border-color:rgba(25,19,31,.12);bac
 html[data-theme="light"] .reclaim-time-brand{color:#6d6574}
 html[data-theme="light"] .reclaim-time-copy{color:#746d79}
 html[data-theme="light"] .reclaim-time-preset{border-color:rgba(98,69,166,.22);background:rgba(118,84,216,.025);color:#2b2232}
+html[data-theme="light"] .reclaim-date-trigger{border-color:rgba(98,69,166,.18);background:rgba(118,84,216,.025);color:#19131f}
+html[data-theme="light"] .reclaim-date-trigger-copy strong{color:#251b2d}
+html[data-theme="light"] .reclaim-calendar{border-color:rgba(98,69,166,.16);background:#f4f0f8}
+html[data-theme="light"] .reclaim-calendar-title{color:#2c2134}
+html[data-theme="light"] .reclaim-calendar-title select{border-color:rgba(98,69,166,.18);background-color:#fff;color:#59486a}
+html[data-theme="light"] .reclaim-cal-day{color:#665d6d}
+html[data-theme="light"] .reclaim-cal-day:hover{color:#241a2c}
 html[data-theme="light"] .reclaim-time-dial::before{border-color:rgba(98,69,166,.2)}
 html[data-theme="light"] .reclaim-time-ring{opacity:.42}
 html[data-theme="light"] .reclaim-time-value [data-time-clock]{color:#19131f;text-shadow:none}
