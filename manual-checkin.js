@@ -95,20 +95,113 @@ function syncButton(){
   button.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">mood</span>';
 }
 
-function currentLocalDateTimeValue(){
-  const d=new Date();
+function currentLocalDateTimeValue(date=new Date()){
   const pad=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function wheel(name){return document.querySelector(`.quit-picker select[data-wheel="${name}"]`)}
+
+function setWheelValue(name,value){
+  const select=wheel(name);
+  if(!select)return;
+  select.value=String(value);
+  const index=Array.from(select.options).findIndex(option=>option.value===String(value));
+  if(index>=0)select.selectedIndex=index;
+}
+
+function centerWheel(select){
+  if(!select||select.selectedIndex<0)return;
+  const option=select.options[select.selectedIndex];
+  if(!option)return;
+  const optionHeight=option.offsetHeight||Math.max(1,select.clientHeight/Math.max(1,+select.size||5));
+  select.scrollTop=Math.max(0,option.offsetTop-(select.clientHeight-optionHeight)/2);
 }
 
 function centerQuitPickerWheels(){
-  const selects=document.querySelectorAll('.quit-picker select[data-wheel]');
-  if(!selects.length)return;
-  selects.forEach(select=>{
-    const option=select.options[select.selectedIndex];
-    if(!option)return;
-    const top=option.offsetTop-(select.clientHeight-option.offsetHeight)/2;
-    select.scrollTop=Math.max(0,top);
+  document.querySelectorAll('.quit-picker select[data-wheel]').forEach(centerWheel);
+}
+
+function selectedQuitDate(){
+  const month=+wheel('month')?.value;
+  const day=+wheel('day')?.value;
+  const year=+wheel('year')?.value;
+  const minute=+wheel('minute')?.value;
+  const period=wheel('period')?.value;
+  let hour=+wheel('hour')?.value%12;
+  if(period==='PM')hour+=12;
+  if(!Number.isFinite(year)||!Number.isFinite(month)||!Number.isFinite(day)||!Number.isFinite(hour)||!Number.isFinite(minute))return null;
+  return new Date(year,month,day,hour,minute,0,0);
+}
+
+function constrainQuitPickerFuture(){
+  const now=new Date();
+  const yearSelect=wheel('year'),monthSelect=wheel('month'),daySelect=wheel('day'),hourSelect=wheel('hour'),minuteSelect=wheel('minute'),periodSelect=wheel('period');
+  if(!yearSelect||!monthSelect||!daySelect||!hourSelect||!minuteSelect||!periodSelect)return;
+
+  // No future years at all.
+  Array.from(yearSelect.options).forEach(option=>{option.disabled=+option.value>now.getFullYear()});
+
+  const year=+yearSelect.value;
+  Array.from(monthSelect.options).forEach(option=>{
+    option.disabled=year===now.getFullYear()&&+option.value>now.getMonth();
+  });
+
+  const month=+monthSelect.value;
+  const maxDay=new Date(year,month+1,0).getDate();
+  Array.from(daySelect.options).forEach(option=>{
+    const value=+option.value;
+    option.disabled=value>maxDay||(year===now.getFullYear()&&month===now.getMonth()&&value>now.getDate());
+  });
+
+  const day=+daySelect.value;
+  const isToday=year===now.getFullYear()&&month===now.getMonth()&&day===now.getDate();
+  Array.from(periodSelect.options).forEach(option=>{
+    option.disabled=isToday&&now.getHours()<12&&option.value==='PM';
+  });
+
+  const period=periodSelect.value;
+  Array.from(hourSelect.options).forEach(option=>{
+    let candidate=(+option.value)%12;
+    if(period==='PM')candidate+=12;
+    option.disabled=isToday&&candidate>now.getHours();
+  });
+
+  let selectedHour=(+hourSelect.value)%12;
+  if(period==='PM')selectedHour+=12;
+  Array.from(minuteSelect.options).forEach(option=>{
+    option.disabled=isToday&&selectedHour===now.getHours()&&+option.value>now.getMinutes();
+  });
+}
+
+function initializeQuitPickerToNow(){
+  const picker=document.querySelector('.quit-picker');
+  if(!picker||picker.dataset.currentInitialized==='true')return;
+  picker.dataset.currentInitialized='true';
+
+  const now=new Date();
+  const hour24=now.getHours();
+  const hour12=hour24%12||12;
+  setWheelValue('month',now.getMonth());
+  setWheelValue('day',now.getDate());
+  setWheelValue('year',now.getFullYear());
+  setWheelValue('hour',hour12);
+  setWheelValue('minute',now.getMinutes());
+  setWheelValue('period',hour24>=12?'PM':'AM');
+  constrainQuitPickerFuture();
+
+  // Native size-selects can stay visually parked at their first option even after
+  // selection changes. Force their scroll position after layout has settled.
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    centerQuitPickerWheels();
+    setTimeout(centerQuitPickerWheels,60);
+  }));
+
+  picker.querySelectorAll('select[data-wheel]').forEach(select=>{
+    select.addEventListener('change',()=>{
+      constrainQuitPickerFuture();
+      requestAnimationFrame(()=>centerWheel(select));
+    });
   });
 }
 
@@ -116,20 +209,46 @@ let queued=false;
 function queueSync(){
   if(queued)return;
   queued=true;
-  queueMicrotask(()=>{queued=false;syncButton()});
+  queueMicrotask(()=>{
+    queued=false;
+    syncButton();
+    initializeQuitPickerToNow();
+  });
 }
 
 document.addEventListener('click',event=>{
   const quitPickerButton=event.target.closest('[data-open-quit-picker]');
   if(quitPickerButton){
+    const now=new Date();
     const input=document.querySelector('#quit-at-value');
-    if(input)input.value=currentLocalDateTimeValue();
+    if(input)input.value=currentLocalDateTimeValue(now);
     const label=document.querySelector('[data-quit-date-label]');
-    if(label)label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date());
-    // app.js creates the wheel modal later in this same click. Once it exists,
-    // move each list so its selected current value is visibly centered instead
-    // of showing the first option (Jan / 1 / 2006 / 01 / 00 / AM).
-    requestAnimationFrame(()=>requestAnimationFrame(centerQuitPickerWheels));
+    if(label)label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(now);
+    // app.js creates the modal during this click. Initialize the actual wheel
+    // controls as soon as they appear instead of relying on the hidden input alone.
+    setTimeout(initializeQuitPickerToNow,0);
+    requestAnimationFrame(initializeQuitPickerToNow);
+  }
+
+  const apply=event.target.closest('[data-apply-quit-date]');
+  if(apply){
+    const chosen=selectedQuitDate();
+    if(chosen&&chosen.getTime()>Date.now()){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const now=new Date(),hour24=now.getHours();
+      setWheelValue('month',now.getMonth());
+      setWheelValue('day',now.getDate());
+      setWheelValue('year',now.getFullYear());
+      setWheelValue('hour',hour24%12||12);
+      setWheelValue('minute',now.getMinutes());
+      setWheelValue('period',hour24>=12?'PM':'AM');
+      constrainQuitPickerFuture();
+      centerQuitPickerWheels();
+      apply.textContent='FUTURE TIME NOT ALLOWED';
+      setTimeout(()=>{if(document.body.contains(apply))apply.textContent='SET THIS MOMENT'},1400);
+      return;
+    }
   }
 
   const button=event.target.closest(`[${BUTTON_ATTR}]`);
