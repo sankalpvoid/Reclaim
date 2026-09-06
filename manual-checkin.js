@@ -38,13 +38,15 @@ function constrainQuitPickerFuture(){
 
 function rotateSelectToValue(select,value){
   if(!select)return;
-  const options=Array.from(select.options),target=options.find(o=>o.value===String(value));
-  if(!target)return;
-  const targetIndex=options.indexOf(target);
-  const reordered=[...options.slice(targetIndex).reverse(),...options.slice(0,targetIndex).reverse()];
+  const options=Array.from(select.options),targetIndex=options.findIndex(o=>o.value===String(value));
+  if(targetIndex<0)return;
+  // Chromium shows the beginning of a list-style select when it opens. Put the
+  // selected current value first, older/lower values immediately after it, and any
+  // newer/higher values at the end (where the future-date guard disables them).
+  const reordered=[options[targetIndex],...options.slice(0,targetIndex).reverse(),...options.slice(targetIndex+1)];
   reordered.forEach(option=>select.appendChild(option));
-  select.value=String(value);
   select.selectedIndex=0;
+  select.value=String(value);
 }
 
 function initializeQuitPickerToNow(){
@@ -52,8 +54,6 @@ function initializeQuitPickerToNow(){
   const now=new Date(),hour24=now.getHours(),hour12=hour24%12||12,period=hour24>=12?'PM':'AM';
   setWheelValue('month',now.getMonth());setWheelValue('day',now.getDate());setWheelValue('year',now.getFullYear());setWheelValue('hour',hour12);setWheelValue('minute',now.getMinutes());setWheelValue('period',period);
   constrainQuitPickerFuture();
-  // Native list-style selects always open their visible viewport at the first option in Chromium.
-  // Put the current value first instead of trying to force-scroll the browser's internal viewport.
   rotateSelectToValue(wheel('month'),now.getMonth());
   rotateSelectToValue(wheel('day'),now.getDate());
   rotateSelectToValue(wheel('year'),now.getFullYear());
