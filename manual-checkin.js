@@ -14,7 +14,7 @@ if(!document.getElementById(QUIT_WHEEL_STYLESHEET_ID)){
   const link=document.createElement('link');
   link.id=QUIT_WHEEL_STYLESHEET_ID;
   link.rel='stylesheet';
-  link.href='manual-checkin.css?v=quit-wheel-5';
+  link.href='manual-checkin.css?v=quit-wheel-6';
   document.head.appendChild(link);
 }
 
@@ -62,7 +62,7 @@ function openQuitWheelPicker(){
   const candidateDate=()=>{let h=selected.hour%12;if(selected.period==='PM')h+=12;return new Date(selected.year,selected.month,selected.day,h,selected.minute,0,0)};
 
   function wheelMarkup(name){
-    return `<div class="reclaim-wheel" data-quit-wheel="${name}" role="listbox" aria-label="${name}"><div class="reclaim-wheel-pad"></div>${valuesFor(name).map(value=>`<button type="button" class="reclaim-wheel-item" data-value="${value}" tabindex="-1">${formatValue(name,value)}</button>`).join('')}<div class="reclaim-wheel-pad"></div></div>`;
+    return `<div class="reclaim-wheel" data-quit-wheel="${name}" role="listbox" aria-label="${name}"><div class="reclaim-wheel-pad"></div>${valuesFor(name).map(value=>`<div class="reclaim-wheel-item" data-value="${value}" role="option">${formatValue(name,value)}</div>`).join('')}<div class="reclaim-wheel-pad"></div></div>`;
   }
 
   modal=document.createElement('div');
@@ -83,7 +83,7 @@ function openQuitWheelPicker(){
 
   function getWheel(name){return modal.querySelector(`[data-quit-wheel="${name}"]`)}
   function itemIndexFor(wheel,value){return [...wheel.querySelectorAll('.reclaim-wheel-item')].findIndex(item=>item.dataset.value===String(value))}
-  function paintWheel(wheel,index){wheel.querySelectorAll('.reclaim-wheel-item').forEach((item,i)=>item.classList.toggle('is-selected',i===index))}
+  function paintWheel(wheel,index){wheel.querySelectorAll('.reclaim-wheel-item').forEach((item,i)=>{item.classList.toggle('is-selected',i===index);item.setAttribute('aria-selected',i===index?'true':'false')})}
   function centerWheel(name,behavior='auto'){
     const wheel=getWheel(name);if(!wheel)return;
     const index=itemIndexFor(wheel,selected[name]);if(index<0)return;
@@ -95,8 +95,9 @@ function openQuitWheelPicker(){
     const old=getWheel('day');if(!old)return;
     const max=daysInMonth(selected.year,selected.month);if(selected.day>max)selected.day=max;
     const holder=document.createElement('div');holder.innerHTML=wheelMarkup('day');old.replaceWith(holder.firstElementChild);
+    const fresh=getWheel('day');
     centerWheel('day');
-    wireWheel(getWheel('day'));
+    wireWheel(fresh);
   }
   function clampFuture(){
     if(candidateDate().getTime()<=now.getTime())return false;
@@ -115,12 +116,15 @@ function openQuitWheelPicker(){
   }
   function wireWheel(wheel){
     let timer;
-    wheel.addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(()=>settleWheel(wheel),140)},{passive:true});
-    wheel.addEventListener('click',event=>{const item=event.target.closest('.reclaim-wheel-item');if(!item)return;const items=[...wheel.querySelectorAll('.reclaim-wheel-item')],index=items.indexOf(item);if(index<0)return;wheel.scrollTo({top:index*WHEEL_ITEM_HEIGHT,behavior:'smooth'});clearTimeout(timer);timer=setTimeout(()=>settleWheel(wheel),180)});
+    wheel.addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(()=>settleWheel(wheel),160)},{passive:true});
+    wheel.addEventListener('click',event=>{const item=event.target.closest('.reclaim-wheel-item');if(!item)return;const items=[...wheel.querySelectorAll('.reclaim-wheel-item')],index=items.indexOf(item);if(index<0)return;wheel.scrollTo({top:index*WHEEL_ITEM_HEIGHT,behavior:'smooth'});clearTimeout(timer);timer=setTimeout(()=>settleWheel(wheel),200)});
   }
 
-  ['month','day','year','hour','minute','period'].forEach(name=>centerWheel(name));
-  modal.querySelectorAll('.reclaim-wheel').forEach(wireWheel);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    ['month','day','year','hour','minute','period'].forEach(name=>centerWheel(name));
+    modal.querySelectorAll('.reclaim-wheel').forEach(wireWheel);
+  }));
+
   modal.querySelector('.reclaim-quit-wheel-close').onclick=closeQuitWheelPicker;
   modal.addEventListener('click',event=>{if(event.target===modal)closeQuitWheelPicker()});
   modal.querySelector('.reclaim-quit-wheel-apply').onclick=()=>{
