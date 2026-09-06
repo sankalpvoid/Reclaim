@@ -14,12 +14,12 @@ if(!document.getElementById(QUIT_PICKER_STYLESHEET_ID)){
   const link=document.createElement('link');
   link.id=QUIT_PICKER_STYLESHEET_ID;
   link.rel='stylesheet';
-  link.href='manual-checkin.css?v=quit-dial-2';
+  link.href='manual-checkin.css?v=quit-dial-3';
   document.head.appendChild(link);
 }
 
 function revealMaterialSymbols(){document.documentElement.classList.add('reclaim-icons-ready')}
-if(document.fonts?.load){let settled=false;document.fonts.load('24px "Material Symbols Rounded"','home mood payments favorite bolt my_location calendar_month chevron_left chevron_right').then(faces=>{if(faces.length){settled=true;revealMaterialSymbols()}else return document.fonts.ready.then(()=>{settled=true;revealMaterialSymbols()})}).catch(()=>{});setTimeout(()=>{if(!settled)revealMaterialSymbols()},5000)}else revealMaterialSymbols();
+if(document.fonts?.load){let settled=false;document.fonts.load('24px "Material Symbols Rounded"','home mood payments favorite bolt my_location calendar_month chevron_left chevron_right expand_more').then(faces=>{if(faces.length){settled=true;revealMaterialSymbols()}else return document.fonts.ready.then(()=>{settled=true;revealMaterialSymbols()})}).catch(()=>{});setTimeout(()=>{if(!settled)revealMaterialSymbols()},5000)}else revealMaterialSymbols();
 
 const STATE_KEY='reclaim-state-v2',SESSION_KEY='reclaim-session-v1',SNAPSHOT_KEY='reclaim-page-skeleton-v1',BUTTON_ATTR='data-manual-mood-checkin',ORIGINAL_HTML_ATTR='data-original-for-you-html';
 function readJson(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
@@ -47,7 +47,7 @@ function openQuitMomentPicker(){
   const preset=(key,icon,text)=>`<button type="button" class="reclaim-time-preset" data-time-preset="${key}"><span class="material-symbols-rounded" aria-hidden="true">${icon}</span><span>${text}</span></button>`;
   modal=document.createElement('div');
   modal.className='reclaim-time-modal';
-  modal.innerHTML=`<div class="reclaim-time-card" role="dialog" aria-modal="true" aria-labelledby="reclaim-time-title"><button type="button" class="reclaim-time-close" aria-label="Close">×</button><div class="reclaim-time-brand"><span class="reclaim-time-brand-mark">✦</span><span>RECLAIM</span></div><h2 id="reclaim-time-title">WHEN DID YOUR<br><em>RECLAIM</em> BEGIN?</h2><p class="reclaim-time-copy">Choose a quick moment or fine-tune the time.</p><div class="reclaim-time-presets">${preset('now','bolt','Just Now')}${preset('morning','wb_twilight','This Morning')}${preset('yesterday','dark_mode','Yesterday')}</div><button type="button" class="reclaim-date-trigger" data-date-trigger><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span><span class="reclaim-date-trigger-copy"><strong data-date-trigger-label></strong><small>CHANGE DATE</small></span><span class="reclaim-date-trigger-arrow">›</span></button><div class="reclaim-calendar" data-calendar hidden><div class="reclaim-calendar-head"><button type="button" data-cal-prev aria-label="Previous month"><span class="material-symbols-rounded">chevron_left</span></button><div class="reclaim-calendar-title"><span data-cal-month></span><select data-cal-year aria-label="Year"></select></div><button type="button" data-cal-next aria-label="Next month"><span class="material-symbols-rounded">chevron_right</span></button></div><div class="reclaim-calendar-weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div><div class="reclaim-calendar-grid" data-cal-grid></div></div><div class="reclaim-time-dial" data-time-dial tabindex="0" aria-label="Adjust time"><div class="reclaim-time-ring"></div><div class="reclaim-time-progress"></div><div class="reclaim-time-hand"><span></span></div><div class="reclaim-time-center"><div class="reclaim-time-value"><span data-time-clock>10:57</span><button type="button" data-time-period>AM</button></div><div class="reclaim-time-rule"></div><div class="reclaim-time-date" data-time-date-label></div><div class="reclaim-time-hint">Drag the ring · scroll for 5 min</div></div></div><div class="reclaim-time-note">Future dates and times are unavailable.</div><button type="button" class="reclaim-time-apply">SET THIS MOMENT</button></div>`;
+  modal.innerHTML=`<div class="reclaim-time-card" role="dialog" aria-modal="true" aria-labelledby="reclaim-time-title"><button type="button" class="reclaim-time-close" aria-label="Close">×</button><div class="reclaim-time-brand"><span class="reclaim-time-brand-mark">✦</span><span>RECLAIM</span></div><h2 id="reclaim-time-title">WHEN DID YOUR<br><em>RECLAIM</em> BEGIN?</h2><p class="reclaim-time-copy">Choose a quick moment or fine-tune the time.</p><div class="reclaim-time-presets">${preset('now','bolt','Just Now')}${preset('morning','wb_twilight','This Morning')}${preset('yesterday','dark_mode','Yesterday')}</div><button type="button" class="reclaim-date-trigger" data-date-trigger><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span><span class="reclaim-date-trigger-copy"><strong data-date-trigger-label></strong><small>CHANGE DATE</small></span><span class="reclaim-date-trigger-arrow">›</span></button><div class="reclaim-calendar" data-calendar hidden><div class="reclaim-calendar-head"><button type="button" data-cal-prev aria-label="Previous month"><span class="material-symbols-rounded">chevron_left</span></button><div class="reclaim-calendar-title"><span data-cal-month></span><div class="reclaim-year-picker"><button type="button" class="reclaim-year-trigger" data-cal-year-trigger aria-haspopup="listbox" aria-expanded="false"><span data-cal-year-label></span><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></button><div class="reclaim-year-menu" data-cal-year-menu role="listbox" hidden></div></div></div><button type="button" data-cal-next aria-label="Next month"><span class="material-symbols-rounded">chevron_right</span></button></div><div class="reclaim-calendar-weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div><div class="reclaim-calendar-grid" data-cal-grid></div></div><div class="reclaim-time-dial" data-time-dial tabindex="0" aria-label="Adjust time"><div class="reclaim-time-ring"></div><div class="reclaim-time-progress"></div><div class="reclaim-time-hand"><span></span></div><div class="reclaim-time-center"><div class="reclaim-time-value"><span data-time-clock>10:57</span><button type="button" data-time-period>AM</button></div><div class="reclaim-time-rule"></div><div class="reclaim-time-date" data-time-date-label></div><div class="reclaim-time-hint">Drag the ring · scroll for 5 min</div></div></div><div class="reclaim-time-note">Future dates and times are unavailable.</div><button type="button" class="reclaim-time-apply">SET THIS MOMENT</button></div>`;
   document.body.appendChild(modal);
 
   const dial=modal.querySelector('[data-time-dial]');
@@ -58,16 +58,25 @@ function openQuitMomentPicker(){
   const dateTriggerLabel=modal.querySelector('[data-date-trigger-label]');
   const calendar=modal.querySelector('[data-calendar]');
   const calMonth=modal.querySelector('[data-cal-month]');
-  const calYear=modal.querySelector('[data-cal-year]');
+  const calYearTrigger=modal.querySelector('[data-cal-year-trigger]');
+  const calYearLabel=modal.querySelector('[data-cal-year-label]');
+  const calYearMenu=modal.querySelector('[data-cal-year-menu]');
   const calGrid=modal.querySelector('[data-cal-grid]');
 
-  for(let y=now.getFullYear()-20;y<=now.getFullYear();y++)calYear.insertAdjacentHTML('beforeend',`<option value="${y}">${y}</option>`);
-
   function clampFuture(){if(selected.getTime()>now.getTime())selected=new Date(now)}
+  function closeYearMenu(){calYearMenu.hidden=true;calYearTrigger.classList.remove('is-open');calYearTrigger.setAttribute('aria-expanded','false')}
+  function renderYearMenu(){
+    const active=calendarCursor.getFullYear();
+    let html='';
+    for(let y=now.getFullYear();y>=now.getFullYear()-20;y--)html+=`<button type="button" role="option" class="reclaim-year-option${y===active?' is-selected':''}" data-cal-year="${y}" aria-selected="${y===active?'true':'false'}">${y}</button>`;
+    calYearMenu.innerHTML=html;
+    requestAnimationFrame(()=>calYearMenu.querySelector('.is-selected')?.scrollIntoView({block:'center'}));
+  }
   function renderCalendar(){
     const year=calendarCursor.getFullYear(),month=calendarCursor.getMonth();
     calMonth.textContent=new Intl.DateTimeFormat(undefined,{month:'long'}).format(calendarCursor);
-    calYear.value=String(year);
+    calYearLabel.textContent=String(year);
+    renderYearMenu();
     const firstDay=new Date(year,month,1).getDay();
     const days=new Date(year,month+1,0).getDate();
     let html='';
@@ -117,7 +126,7 @@ function openQuitMomentPicker(){
     const maxMonth=new Date(now.getFullYear(),now.getMonth(),1);
     if(next>maxMonth)return;
     if(next.getFullYear()<now.getFullYear()-20)return;
-    calendarCursor=next;renderCalendar();
+    calendarCursor=next;closeYearMenu();renderCalendar();
   }
 
   dial.addEventListener('pointerdown',event=>{dragging=true;dial.setPointerCapture?.(event.pointerId);setTimeFromAngle(event)});
@@ -128,13 +137,14 @@ function openQuitMomentPicker(){
   dial.addEventListener('keydown',event=>{if(event.key==='ArrowUp'||event.key==='ArrowRight'){event.preventDefault();nudge(5)}if(event.key==='ArrowDown'||event.key==='ArrowLeft'){event.preventDefault();nudge(-5)}});
   modal.querySelectorAll('[data-time-preset]').forEach(button=>button.onclick=()=>applyPreset(button.dataset.timePreset));
   periodButton.onclick=()=>{selected.setHours((selected.getHours()+12)%24);clampFuture();updateUI()};
-  dateTrigger.onclick=()=>{calendar.hidden=!calendar.hidden;dateTrigger.classList.toggle('is-open',!calendar.hidden);if(!calendar.hidden){calendarCursor=new Date(selected.getFullYear(),selected.getMonth(),1);renderCalendar()}};
+  dateTrigger.onclick=()=>{calendar.hidden=!calendar.hidden;dateTrigger.classList.toggle('is-open',!calendar.hidden);closeYearMenu();if(!calendar.hidden){calendarCursor=new Date(selected.getFullYear(),selected.getMonth(),1);renderCalendar()}};
   modal.querySelector('[data-cal-prev]').onclick=()=>changeMonth(-1);
   modal.querySelector('[data-cal-next]').onclick=()=>changeMonth(1);
-  calYear.onchange=()=>{const y=Number(calYear.value);calendarCursor=new Date(y,calendarCursor.getMonth(),1);const maxMonth=new Date(now.getFullYear(),now.getMonth(),1);if(calendarCursor>maxMonth)calendarCursor=maxMonth;renderCalendar()};
-  calGrid.onclick=event=>{const button=event.target.closest('[data-cal-day]');if(!button||button.disabled)return;selected.setFullYear(calendarCursor.getFullYear(),calendarCursor.getMonth(),Number(button.dataset.calDay));clampFuture();calendar.hidden=true;dateTrigger.classList.remove('is-open');updateUI()};
+  calYearTrigger.onclick=event=>{event.stopPropagation();const opening=calYearMenu.hidden;calYearMenu.hidden=!opening;calYearTrigger.classList.toggle('is-open',opening);calYearTrigger.setAttribute('aria-expanded',opening?'true':'false');if(opening)renderYearMenu()};
+  calYearMenu.onclick=event=>{const button=event.target.closest('[data-cal-year]');if(!button)return;const y=Number(button.dataset.calYear);calendarCursor=new Date(y,calendarCursor.getMonth(),1);const maxMonth=new Date(now.getFullYear(),now.getMonth(),1);if(calendarCursor>maxMonth)calendarCursor=maxMonth;closeYearMenu();renderCalendar()};
+  calGrid.onclick=event=>{const button=event.target.closest('[data-cal-day]');if(!button||button.disabled)return;selected.setFullYear(calendarCursor.getFullYear(),calendarCursor.getMonth(),Number(button.dataset.calDay));clampFuture();calendar.hidden=true;dateTrigger.classList.remove('is-open');closeYearMenu();updateUI()};
   modal.querySelector('.reclaim-time-close').onclick=closeQuitMomentPicker;
-  modal.addEventListener('click',event=>{if(event.target===modal)closeQuitMomentPicker()});
+  modal.addEventListener('click',event=>{if(event.target===modal)closeQuitMomentPicker();else if(!event.target.closest('.reclaim-year-picker'))closeYearMenu()});
   modal.querySelector('.reclaim-time-apply').onclick=()=>{clampFuture();hidden.value=localDateTimeValue(selected);hidden.dispatchEvent(new Event('input',{bubbles:true}));hidden.dispatchEvent(new Event('change',{bubbles:true}));label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(selected);closeQuitMomentPicker()};
   updateUI();
 }
