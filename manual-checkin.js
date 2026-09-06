@@ -101,6 +101,17 @@ function currentLocalDateTimeValue(){
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function centerQuitPickerWheels(){
+  const selects=document.querySelectorAll('.quit-picker select[data-wheel]');
+  if(!selects.length)return;
+  selects.forEach(select=>{
+    const option=select.options[select.selectedIndex];
+    if(!option)return;
+    const top=option.offsetTop-(select.clientHeight-option.offsetHeight)/2;
+    select.scrollTop=Math.max(0,top);
+  });
+}
+
 let queued=false;
 function queueSync(){
   if(queued)return;
@@ -115,6 +126,10 @@ document.addEventListener('click',event=>{
     if(input)input.value=currentLocalDateTimeValue();
     const label=document.querySelector('[data-quit-date-label]');
     if(label)label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date());
+    // app.js creates the wheel modal later in this same click. Once it exists,
+    // move each list so its selected current value is visibly centered instead
+    // of showing the first option (Jan / 1 / 2006 / 01 / 00 / AM).
+    requestAnimationFrame(()=>requestAnimationFrame(centerQuitPickerWheels));
   }
 
   const button=event.target.closest(`[${BUTTON_ATTR}]`);
