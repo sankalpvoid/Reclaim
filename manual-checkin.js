@@ -19,61 +19,76 @@ function openMoodCheckin(){const state=readJson(STATE_KEY)||{},liveShell=documen
 function restoreForYou(button){if(!button?.hasAttribute(ORIGINAL_HTML_ATTR))return;button.innerHTML=button.getAttribute(ORIGINAL_HTML_ATTR)||'';button.removeAttribute(ORIGINAL_HTML_ATTR);button.removeAttribute(BUTTON_ATTR);button.classList.remove('manual-checkin-button');button.setAttribute('data-for-you','');button.setAttribute('aria-label','Open For You');button.removeAttribute('title')}
 function syncButton(){const app=document.querySelector('#app');if(!app)return;const manual=app.querySelector(`[${BUTTON_ATTR}]`);if(!isDashboardHome()){restoreForYou(manual);return}const home=app.querySelector('.home-screen,.tracking-home'),top=home?.querySelector('.topbar'),button=top?.querySelector('.checkin-trigger.for-you-trigger');if(!button||button.hasAttribute(BUTTON_ATTR))return;button.setAttribute(ORIGINAL_HTML_ATTR,button.innerHTML);button.setAttribute(BUTTON_ATTR,'');button.classList.add('manual-checkin-button');button.removeAttribute('data-for-you');button.setAttribute('aria-label','How are you now? Check in');button.setAttribute('title','How are you now?');button.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">mood</span>'}
 
-function currentLocalDateTimeValue(date=new Date()){const pad=n=>String(n).padStart(2,'0');return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`}
-function wheel(name){return document.querySelector(`.quit-picker select[data-wheel="${name}"]`)}
-function setWheelValue(name,value){const select=wheel(name);if(!select)return;const index=Array.from(select.options).findIndex(option=>option.value===String(value));if(index<0)return;select.selectedIndex=index;select.value=String(value)}
-function selectedQuitDate(){const month=+wheel('month')?.value,day=+wheel('day')?.value,year=+wheel('year')?.value,minute=+wheel('minute')?.value,period=wheel('period')?.value;let hour=+wheel('hour')?.value%12;if(period==='PM')hour+=12;if(!Number.isFinite(year)||!Number.isFinite(month)||!Number.isFinite(day)||!Number.isFinite(hour)||!Number.isFinite(minute))return null;return new Date(year,month,day,hour,minute,0,0)}
-
-function constrainQuitPickerFuture(){
-  const now=new Date(),yearSelect=wheel('year'),monthSelect=wheel('month'),daySelect=wheel('day'),hourSelect=wheel('hour'),minuteSelect=wheel('minute'),periodSelect=wheel('period');
-  if(!yearSelect||!monthSelect||!daySelect||!hourSelect||!minuteSelect||!periodSelect)return;
-  Array.from(yearSelect.options).forEach(o=>o.disabled=+o.value>now.getFullYear());
-  const year=+yearSelect.value;Array.from(monthSelect.options).forEach(o=>o.disabled=year===now.getFullYear()&&+o.value>now.getMonth());
-  const month=+monthSelect.value,maxDay=new Date(year,month+1,0).getDate();Array.from(daySelect.options).forEach(o=>{const v=+o.value;o.disabled=v>maxDay||(year===now.getFullYear()&&month===now.getMonth()&&v>now.getDate())});
-  const day=+daySelect.value,isToday=year===now.getFullYear()&&month===now.getMonth()&&day===now.getDate();
-  Array.from(periodSelect.options).forEach(o=>o.disabled=isToday&&now.getHours()<12&&o.value==='PM');
-  const period=periodSelect.value;Array.from(hourSelect.options).forEach(o=>{let h=(+o.value)%12;if(period==='PM')h+=12;o.disabled=isToday&&h>now.getHours()});
-  let selectedHour=(+hourSelect.value)%12;if(period==='PM')selectedHour+=12;Array.from(minuteSelect.options).forEach(o=>o.disabled=isToday&&selectedHour===now.getHours()&&+o.value>now.getMinutes());
+function currentLocalDateTimeValue(date=new Date()){
+  const pad=n=>String(n).padStart(2,'0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function rotateSelectToValue(select,value){
-  if(!select)return;
-  const options=Array.from(select.options),targetIndex=options.findIndex(o=>o.value===String(value));
-  if(targetIndex<0)return;
-  // Chromium shows the beginning of a list-style select when it opens. Put the
-  // selected current value first, older/lower values immediately after it, and any
-  // newer/higher values at the end (where the future-date guard disables them).
-  const reordered=[options[targetIndex],...options.slice(0,targetIndex).reverse(),...options.slice(targetIndex+1)];
-  reordered.forEach(option=>select.appendChild(option));
-  select.selectedIndex=0;
-  select.value=String(value);
+function closeReliableQuitPicker(){document.querySelector('.reliable-quit-picker-modal')?.remove()}
+
+function openReliableQuitPicker(){
+  closeReliableQuitPicker();
+  const hidden=document.querySelector('#quit-at-value');
+  const label=document.querySelector('[data-quit-date-label]');
+  if(!hidden||!label)return;
+
+  const now=new Date();
+  const nowValue=currentLocalDateTimeValue(now);
+  const modal=document.createElement('div');
+  modal.className='reliable-quit-picker-modal';
+  modal.innerHTML=`
+    <div class="reliable-quit-picker-card" role="dialog" aria-modal="true" aria-labelledby="reliable-quit-title">
+      <button type="button" class="reliable-quit-close" aria-label="Close">×</button>
+      <div class="reliable-quit-eyebrow">QUIT DATE AND TIME</div>
+      <h2 id="reliable-quit-title">WHEN DID YOUR<br>RECLAIM BEGIN?</h2>
+      <p>Choose the moment your live calculations begin.</p>
+      <label class="reliable-quit-field-label" for="reliable-quit-datetime">DATE & TIME</label>
+      <input id="reliable-quit-datetime" class="reliable-quit-datetime" type="datetime-local" step="60" value="${nowValue}" max="${nowValue}">
+      <small class="reliable-quit-note">Future dates and times are not allowed.</small>
+      <button type="button" class="reliable-quit-apply">SET THIS MOMENT</button>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const picker=modal.querySelector('#reliable-quit-datetime');
+  const close=()=>closeReliableQuitPicker();
+  modal.querySelector('.reliable-quit-close').onclick=close;
+  modal.addEventListener('click',event=>{if(event.target===modal)close()});
+  modal.querySelector('.reliable-quit-apply').onclick=()=>{
+    const chosen=new Date(picker.value);
+    if(!picker.value||Number.isNaN(chosen.getTime()))return;
+    if(chosen.getTime()>Date.now()){
+      picker.value=currentLocalDateTimeValue(new Date());
+      picker.max=picker.value;
+      return;
+    }
+    hidden.value=picker.value;
+    hidden.dispatchEvent(new Event('input',{bubbles:true}));
+    hidden.dispatchEvent(new Event('change',{bubbles:true}));
+    label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(chosen);
+    close();
+  };
 }
 
-function initializeQuitPickerToNow(){
-  const picker=document.querySelector('.quit-picker');if(!picker||picker.dataset.currentInitialized==='true')return;picker.dataset.currentInitialized='true';
-  const now=new Date(),hour24=now.getHours(),hour12=hour24%12||12,period=hour24>=12?'PM':'AM';
-  setWheelValue('month',now.getMonth());setWheelValue('day',now.getDate());setWheelValue('year',now.getFullYear());setWheelValue('hour',hour12);setWheelValue('minute',now.getMinutes());setWheelValue('period',period);
-  constrainQuitPickerFuture();
-  rotateSelectToValue(wheel('month'),now.getMonth());
-  rotateSelectToValue(wheel('day'),now.getDate());
-  rotateSelectToValue(wheel('year'),now.getFullYear());
-  rotateSelectToValue(wheel('hour'),hour12);
-  rotateSelectToValue(wheel('minute'),now.getMinutes());
-  rotateSelectToValue(wheel('period'),period);
-  constrainQuitPickerFuture();
-  picker.querySelectorAll('select[data-wheel]').forEach(select=>select.addEventListener('change',constrainQuitPickerFuture));
-}
-
-let queued=false;function queueSync(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;syncButton();initializeQuitPickerToNow()})}
+let queued=false;function queueSync(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;syncButton()})}
 
 document.addEventListener('click',event=>{
   const quitPickerButton=event.target.closest('[data-open-quit-picker]');
-  if(quitPickerButton){const now=new Date(),input=document.querySelector('#quit-at-value'),label=document.querySelector('[data-quit-date-label]');if(input)input.value=currentLocalDateTimeValue(now);if(label)label.textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(now)}
+  if(quitPickerButton){
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    openReliableQuitPicker();
+    return;
+  }
 
-  const apply=event.target.closest('[data-apply-quit-date]');
-  if(apply){const chosen=selectedQuitDate();if(chosen&&chosen.getTime()>Date.now()){event.preventDefault();event.stopImmediatePropagation();const now=new Date(),h=now.getHours();setWheelValue('month',now.getMonth());setWheelValue('day',now.getDate());setWheelValue('year',now.getFullYear());setWheelValue('hour',h%12||12);setWheelValue('minute',now.getMinutes());setWheelValue('period',h>=12?'PM':'AM');constrainQuitPickerFuture();apply.textContent='FUTURE TIME NOT ALLOWED';setTimeout(()=>{if(document.body.contains(apply))apply.textContent='SET THIS MOMENT'},1400);return}}
-
-  const button=event.target.closest(`[${BUTTON_ATTR}]`);if(!button)return;event.preventDefault();event.stopImmediatePropagation();openMoodCheckin()
+  const button=event.target.closest(`[${BUTTON_ATTR}]`);
+  if(!button)return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  openMoodCheckin();
 },true);
 
-syncButton();const app=document.querySelector('#app');if(app)new MutationObserver(queueSync).observe(app,{childList:true,subtree:true});new MutationObserver(()=>initializeQuitPickerToNow()).observe(document.body,{childList:true,subtree:true});window.addEventListener('storage',queueSync);window.addEventListener('reclaim:reload-restored',queueSync);
+syncButton();
+const app=document.querySelector('#app');
+if(app)new MutationObserver(queueSync).observe(app,{childList:true,subtree:true});
+window.addEventListener('storage',queueSync);
+window.addEventListener('reclaim:reload-restored',queueSync);
