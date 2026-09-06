@@ -53,3 +53,167 @@ html[data-theme="light"] .reliable-quit-note{color:#7d7682}
   .home-days{font-size:116px;letter-spacing:-1.5px}
   .home-hero-copy{width:158px}
 }
+/* Custom Reclaim quit-date wheel picker */
+.custom-quit-picker{
+  width:min(92vw,430px);
+}
+
+.reclaim-wheel-row{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:8px;
+}
+
+.reclaim-wheel{
+  position:relative;
+  height:144px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scroll-snap-type:y mandatory;
+  scroll-behavior:smooth;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  border-radius:16px;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,.025),
+      rgba(255,255,255,.01)
+    );
+  touch-action:pan-y;
+}
+
+.reclaim-wheel::-webkit-scrollbar{
+  display:none;
+}
+
+.reclaim-wheel-spacer{
+  height:48px;
+  flex:0 0 48px;
+}
+
+.reclaim-wheel-item{
+  width:100%;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  scroll-snap-align:center;
+  border:0;
+  padding:0;
+  background:transparent;
+  color:rgba(255,255,255,.28);
+  font:700 18px/1 Inter,sans-serif;
+  letter-spacing:.02em;
+  cursor:pointer;
+  transition:
+    color .16s ease,
+    opacity .16s ease,
+    transform .16s ease;
+}
+
+.reclaim-wheel-item.is-selected{
+  color:#fff;
+  font-size:22px;
+  font-weight:800;
+  transform:scale(1.04);
+}
+
+.reclaim-wheel-row::after{
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  top:48px;
+  height:48px;
+  border-top:1px solid rgba(169,140,255,.42);
+  border-bottom:1px solid rgba(169,140,255,.42);
+  border-radius:12px;
+  background:rgba(169,140,255,.055);
+  box-shadow:
+    inset 0 0 20px rgba(124,82,255,.045),
+    0 0 18px rgba(124,82,255,.035);
+  pointer-events:none;
+}
+
+.reclaim-date-wheel-row{
+  margin-bottom:24px;
+}
+
+.reclaim-time-wheel-row{
+  margin-bottom:26px;
+}
+
+.custom-quit-picker .wheel-labels{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:22px 0 4px;
+}
+
+.custom-quit-picker .wheel-labels span{
+  text-align:center;
+  color:#8e8e93;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.13em;
+}
+
+.custom-quit-picker .wheel-labels.time{
+  margin-top:4px;
+}
+
+.custom-quit-picker [data-apply-quit-date]{
+  width:100%;
+}
+
+html[data-theme="light"] .reclaim-wheel{
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(40,25,60,.018),
+      rgba(40,25,60,.008)
+    );
+}
+
+html[data-theme="light"] .reclaim-wheel-item{
+  color:rgba(25,19,31,.25);
+}
+
+html[data-theme="light"] .reclaim-wheel-item.is-selected{
+  color:#19131f;
+}
+
+html[data-theme="light"] .reclaim-wheel-row::after{
+  border-top-color:rgba(118,84,216,.32);
+  border-bottom-color:rgba(118,84,216,.32);
+  background:rgba(118,84,216,.055);
+  box-shadow:
+    inset 0 0 18px rgba(118,84,216,.035),
+    0 0 16px rgba(118,84,216,.025);
+}
+
+html[data-theme="light"] .custom-quit-picker .wheel-labels span{
+  color:#827988;
+}
+
+@media (max-width:480px){
+  .custom-quit-picker{
+    width:100%;
+  }
+
+  .reclaim-wheel-row{
+    gap:6px;
+  }
+
+  .reclaim-wheel-item{
+    font-size:17px;
+  }
+
+  .reclaim-wheel-item.is-selected{
+    font-size:21px;
+  }
+}
