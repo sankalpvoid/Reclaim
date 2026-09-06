@@ -14,7 +14,7 @@ if(!document.getElementById(QUIT_WHEEL_STYLESHEET_ID)){
   const link=document.createElement('link');
   link.id=QUIT_WHEEL_STYLESHEET_ID;
   link.rel='stylesheet';
-  link.href='manual-checkin.css?v=quit-wheel-7';
+  link.href='manual-checkin.css?v=quit-wheel-8';
   document.head.appendChild(link);
 }
 
@@ -50,7 +50,7 @@ function openQuitWheelPicker(){
   const valuesFor=name=>name==='month'?Array.from({length:12},(_,i)=>i):name==='day'?Array.from({length:daysInMonth(selected.year,selected.month)},(_,i)=>i+1):name==='year'?years:name==='hour'?Array.from({length:12},(_,i)=>i+1):name==='minute'?Array.from({length:60},(_,i)=>i):['AM','PM'];
   const formatValue=(name,value)=>name==='month'?monthNames[value]:(name==='hour'||name==='minute'?pad2(value):String(value));
   const candidateDate=()=>{let h=selected.hour%12;if(selected.period==='PM')h+=12;return new Date(selected.year,selected.month,selected.day,h,selected.minute,0,0)};
-  function wheelMarkup(name){return `<div class="reclaim-wheel" data-quit-wheel="${name}" role="listbox" aria-label="${name}"><div class="reclaim-wheel-pad"></div>${valuesFor(name).map(value=>`<div class="reclaim-wheel-item" data-value="${value}" role="option">${formatValue(name,value)}</div>`).join('')}<div class="reclaim-wheel-pad"></div></div>`}
+  function wheelMarkup(name){return `<div class="reclaim-wheel" data-quit-wheel="${name}"><div class="reclaim-wheel-pad"></div>${valuesFor(name).map(value=>`<div class="reclaim-wheel-item" data-value="${value}">${formatValue(name,value)}</div>`).join('')}<div class="reclaim-wheel-pad"></div></div>`}
 
   modal=document.createElement('div');
   modal.className='reclaim-quit-wheel-modal';
@@ -59,8 +59,8 @@ function openQuitWheelPicker(){
 
   function getWheel(name){return modal.querySelector(`[data-quit-wheel="${name}"]`)}
   function itemIndexFor(wheel,value){return [...wheel.querySelectorAll('.reclaim-wheel-item')].findIndex(item=>item.dataset.value===String(value))}
-  function paintWheel(wheel,index){wheel.querySelectorAll('.reclaim-wheel-item').forEach((item,i)=>{item.classList.toggle('is-selected',i===index);item.setAttribute('aria-selected',i===index?'true':'false')})}
-  function centerWheel(name,behavior='auto'){
+  function paintWheel(wheel,index){wheel.querySelectorAll('.reclaim-wheel-item').forEach((item,i)=>item.classList.toggle('is-selected',i===index))}
+  function centerWheel(name){
     const wheel=getWheel(name);if(!wheel)return;
     const index=itemIndexFor(wheel,selected[name]);if(index<0)return;
     wheel.classList.add('is-positioning');
