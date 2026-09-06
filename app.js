@@ -330,7 +330,266 @@ function handleForYouAction(action){
   routeFromForYou(destination);
 }
 function openYesterdayConfirmation(){const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);const key=localDateKey(yesterday);modal(`<div class="confirm-yesterday"><div class="eyebrow">Complete yesterday</div><h2>WHAT HAPPENED?</h2><p class="muted">Choose the honest answer. Both are useful information and neither affects your worth.</p><div class="stack"><button class="secondary" data-confirm-yesterday="smoke_free">${appIcon('verified')} IT WAS SMOKE-FREE</button><button class="secondary" data-confirm-yesterday="untracked">${appIcon('edit_note')} I DIDN’T TRACK IT</button></div></div>`);document.querySelectorAll('[data-confirm-yesterday]').forEach(button=>button.onclick=()=>{state.dayConfirmations={...(state.dayConfirmations||{}),[key]:button.dataset.confirmYesterday};save();closeModal();toast(button.dataset.confirmYesterday==='smoke_free'?'Yesterday marked smoke-free.':'Yesterday marked as untracked.')})}
-function openQuitDatePicker(){const input=$('#quit-at-value');if(!input)return;const initial=new Date(input.value||Date.now()),yearNow=new Date().getFullYear(),months=Array.from({length:12},(_,i)=>new Intl.DateTimeFormat(undefined,{month:'short'}).format(new Date(2020,i,1))),option=(value,label,selected)=>`<option value="${value}" ${selected?'selected':''}>${label}</option>`,hour24=initial.getHours(),hour12=hour24%12||12;modal(`<div class="quit-picker"><div class="eyebrow">Quit date and time</div><h2>WHEN DID YOUR<br>RECLAIM BEGIN?</h2><p class="muted">Roll each column to set the moment your live calculations begin.</p><div class="wheel-labels"><span>MONTH</span><span>DAY</span><span>YEAR</span></div><div class="date-wheels"><select size="5" data-wheel="month">${months.map((name,i)=>option(i,name,i===initial.getMonth())).join('')}</select><select size="5" data-wheel="day">${Array.from({length:31},(_,i)=>option(i+1,i+1,i+1===initial.getDate())).join('')}</select><select size="5" data-wheel="year">${Array.from({length:22},(_,i)=>yearNow-20+i).map(year=>option(year,year,year===initial.getFullYear())).join('')}</select></div><div class="wheel-labels time"><span>HOUR</span><span>MINUTE</span><span>AM / PM</span></div><div class="date-wheels time"><select size="3" data-wheel="hour">${Array.from({length:12},(_,i)=>option(i+1,String(i+1).padStart(2,'0'),i+1===hour12)).join('')}</select><select size="3" data-wheel="minute">${Array.from({length:60},(_,i)=>option(i,String(i).padStart(2,'0'),i===initial.getMinutes())).join('')}</select><select size="3" data-wheel="period">${option('AM','AM',hour24<12)}${option('PM','PM',hour24>=12)}</select></div><button class="primary" data-apply-quit-date>SET THIS MOMENT</button></div>`);$('[data-apply-quit-date]').onclick=()=>{const value=name=>+$(`[data-wheel="${name}"]`).value,month=value('month'),year=value('year'),maxDay=new Date(year,month+1,0).getDate(),day=Math.min(value('day'),maxDay),period=$('[data-wheel="period"]').value;let hour=value('hour')%12;if(period==='PM')hour+=12;const date=new Date(year,month,day,hour,value('minute'));input.value=toLocalDateTimeInput(date);$('[data-quit-date-label]').textContent=new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(date);closeModal()}}
+function openQuitDatePicker(){
+  const input=$('#quit-at-value');
+  if(!input)return;
+
+  const initial=new Date();
+  const currentYear=initial.getFullYear();
+
+  const months=Array.from({length:12},(_,i)=>
+    new Intl.DateTimeFormat(undefined,{month:'short'})
+      .format(new Date(2020,i,1))
+      .toUpperCase()
+  );
+
+  const years=Array.from(
+    {length:21},
+    (_,i)=>currentYear-20+i
+  );
+
+  const pad=n=>String(n).padStart(2,'0');
+
+  let selected={
+    month:initial.getMonth(),
+    day:initial.getDate(),
+    year:initial.getFullYear(),
+    hour:initial.getHours()%12||12,
+    minute:initial.getMinutes(),
+    period:initial.getHours()>=12?'PM':'AM'
+  };
+
+  const wheel=(name,values,formatter=value=>value)=>`
+    <div class="reclaim-wheel" data-custom-wheel="${name}">
+      <div class="reclaim-wheel-spacer"></div>
+
+      ${values.map(value=>`
+        <button
+          type="button"
+          class="reclaim-wheel-item"
+          data-wheel-value="${value}"
+        >
+          ${formatter(value)}
+        </button>
+      `).join('')}
+
+      <div class="reclaim-wheel-spacer"></div>
+    </div>
+  `;
+
+  const daysInMonth=(year,month)=>
+    new Date(year,month+1,0).getDate();
+
+  const days=Array.from(
+    {length:daysInMonth(selected.year,selected.month)},
+    (_,i)=>i+1
+  );
+
+  modal(`
+    <div class="quit-picker custom-quit-picker">
+
+      <div class="eyebrow">Quit date and time</div>
+
+      <h2>
+        WHEN DID YOUR<br>
+        RECLAIM BEGIN?
+      </h2>
+
+      <p class="muted">
+        Roll each column to set the moment your live calculations begin.
+      </p>
+
+      <div class="wheel-labels">
+        <span>MONTH</span>
+        <span>DAY</span>
+        <span>YEAR</span>
+      </div>
+
+      <div class="reclaim-wheel-row reclaim-date-wheel-row">
+        ${wheel('month',
+          Array.from({length:12},(_,i)=>i),
+          value=>months[value]
+        )}
+
+        ${wheel('day',days)}
+
+        ${wheel('year',years)}
+      </div>
+
+      <div class="wheel-labels time">
+        <span>HOUR</span>
+        <span>MINUTE</span>
+        <span>AM / PM</span>
+      </div>
+
+      <div class="reclaim-wheel-row reclaim-time-wheel-row">
+        ${wheel(
+          'hour',
+          Array.from({length:12},(_,i)=>i+1),
+          pad
+        )}
+
+        ${wheel(
+          'minute',
+          Array.from({length:60},(_,i)=>i),
+          pad
+        )}
+
+        ${wheel('period',['AM','PM'])}
+      </div>
+
+      <button
+        class="primary"
+        type="button"
+        data-apply-quit-date
+      >
+        SET THIS MOMENT
+      </button>
+
+    </div>
+  `);
+
+  const ITEM_HEIGHT=48;
+
+  function updateVisualState(wheelEl){
+    const name=wheelEl.dataset.customWheel;
+    const items=[...wheelEl.querySelectorAll('.reclaim-wheel-item')];
+
+    items.forEach(item=>{
+      const raw=item.dataset.wheelValue;
+
+      const value=
+        name==='period'
+          ? raw
+          : Number(raw);
+
+      item.classList.toggle(
+        'is-selected',
+        value===selected[name]
+      );
+    });
+  }
+
+  function moveWheelToValue(name,behavior='auto'){
+    const wheelEl=$(`[data-custom-wheel="${name}"]`);
+    if(!wheelEl)return;
+
+    const items=[...wheelEl.querySelectorAll('.reclaim-wheel-item')];
+
+    const index=items.findIndex(item=>{
+      const raw=item.dataset.wheelValue;
+
+      return name==='period'
+        ? raw===selected[name]
+        : Number(raw)===selected[name];
+    });
+
+    if(index<0)return;
+
+    wheelEl.scrollTo({
+      top:index*ITEM_HEIGHT,
+      behavior
+    });
+
+    updateVisualState(wheelEl);
+  }
+
+  function readWheel(wheelEl){
+    const name=wheelEl.dataset.customWheel;
+    const items=[...wheelEl.querySelectorAll('.reclaim-wheel-item')];
+
+    if(!items.length)return;
+
+    const index=Math.max(
+      0,
+      Math.min(
+        items.length-1,
+        Math.round(wheelEl.scrollTop/ITEM_HEIGHT)
+      )
+    );
+
+    const raw=items[index].dataset.wheelValue;
+
+    selected[name]=
+      name==='period'
+        ? raw
+        : Number(raw);
+
+    updateVisualState(wheelEl);
+  }
+
+  document.querySelectorAll('[data-custom-wheel]').forEach(wheelEl=>{
+
+    let timer;
+
+    wheelEl.addEventListener('scroll',()=>{
+      clearTimeout(timer);
+
+      timer=setTimeout(()=>{
+        readWheel(wheelEl);
+
+        const name=wheelEl.dataset.customWheel;
+
+        moveWheelToValue(name,'smooth');
+
+      },80);
+    });
+
+    wheelEl.addEventListener('click',event=>{
+      const item=event.target.closest('.reclaim-wheel-item');
+
+      if(!item)return;
+
+      const name=wheelEl.dataset.customWheel;
+      const raw=item.dataset.wheelValue;
+
+      selected[name]=
+        name==='period'
+          ? raw
+          : Number(raw);
+
+      moveWheelToValue(name,'smooth');
+    });
+  });
+
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      moveWheelToValue('month');
+      moveWheelToValue('day');
+      moveWheelToValue('year');
+      moveWheelToValue('hour');
+      moveWheelToValue('minute');
+      moveWheelToValue('period');
+    });
+  });
+
+  $('[data-apply-quit-date]').onclick=()=>{
+
+    let hour=selected.hour%12;
+
+    if(selected.period==='PM'){
+      hour+=12;
+    }
+
+    const date=new Date(
+      selected.year,
+      selected.month,
+      selected.day,
+      hour,
+      selected.minute
+    );
+
+    input.value=toLocalDateTimeInput(date);
+
+    $('[data-quit-date-label]').textContent=
+      new Intl.DateTimeFormat(undefined,{
+        dateStyle:'medium',
+        timeStyle:'short'
+      }).format(date);
+
+    closeModal();
+  };
+}
 function openMenu(){const menuItems=journeyMode()==='quit'?[['home','home','Home'],['health','favorite','Health recovery'],['momentum','bolt','Momentum'],['dreams','my_location','Dream savings'],['craving','health_and_safety','Craving support'],['circles','groups','Community circles'],['insights','monitoring','Insights'],['more','more_horiz','Settings & more']]:[['home','home','Today'],['insights','monitoring','Smoking patterns'],['craving','health_and_safety','Craving support'],['more','more_horiz','Settings & more']];document.body.insertAdjacentHTML('beforeend',`<div class="menu-overlay"><aside class="side-menu"><header><div><div class="brand">RECLAIM</div><small>${esc(state.profile.name||'Your journey')}</small></div><button class="icon-btn" data-menu-close aria-label="Close menu">×</button></header><nav>${menuItems.map(([view,icon,label])=>`<button data-menu-view="${view}" class="${state.view===view?'active':''}"><i>${appIcon(icon)}</i><span>${label}</span><b>›</b></button>`).join('')}</nav><div class="menu-footer"><span class="menu-dot"></span><small>${session?'SUPABASE CONNECTED':'LOCAL PREVIEW'}</small></div></aside></div>`);const overlay=$('.menu-overlay');requestAnimationFrame(()=>overlay.classList.add('open'));const close=()=>{overlay.classList.remove('open');setTimeout(()=>overlay.remove(),220)};overlay.addEventListener('click',e=>{if(e.target===overlay)close()});$('[data-menu-close]',overlay).onclick=close;overlay.querySelectorAll('[data-menu-view]').forEach(el=>el.onclick=()=>{state.stage='app';state.view=el.dataset.menuView;save();close();setTimeout(render,160)})}
 function modal(body){document.body.insertAdjacentHTML('beforeend',`<div class="modal"><div class="modal-body"><button class="icon-btn close" data-close>×</button>${body}</div></div>`);$('[data-close]').onclick=closeModal}
 function closeModal(){clearInterval(breathing);clearInterval(cravingTimer);$('.modal')?.remove()}
