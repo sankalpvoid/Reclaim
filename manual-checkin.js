@@ -104,12 +104,18 @@ function setWheelValue(name,value){
 
 function centerWheel(select){
   if(!select||select.selectedIndex<0)return;
-  const visibleRows=Math.max(1,+select.size||5);
-  const rowHeight=Math.max(1,select.clientHeight/visibleRows);
-  const firstVisible=Math.max(0,select.selectedIndex-Math.floor(visibleRows/2));
-  // OPTION.offsetTop is unreliable inside native <select size> controls in Chromium.
-  // Scroll from the selected index instead, which reliably opens the list around it.
-  select.scrollTop=firstVisible*rowHeight;
+  const option=select.options[select.selectedIndex];
+  if(!option)return;
+  // Chromium does not reliably expose/programmatically move the internal viewport of
+  // a native <select size> via scrollTop. Scrolling the selected <option> itself into
+  // view asks the browser's native list control to reveal that row.
+  try{
+    select.focus({preventScroll:true});
+    option.scrollIntoView({block:'center',inline:'nearest'});
+    select.blur();
+  }catch{
+    option.scrollIntoView();
+  }
 }
 
 function centerQuitPickerWheels(){
@@ -157,7 +163,8 @@ function constrainQuitPickerFuture(){
 
 function initializeQuitPickerToNow(){
   const picker=document.querySelector('.quit-picker');
-  if(!picker)return;
+  if(!picker||picker.dataset.currentInitialized==='true')return;
+  picker.dataset.currentInitialized='true';
   const now=new Date();
   const hour24=now.getHours();
   setWheelValue('month',now.getMonth());
@@ -167,22 +174,17 @@ function initializeQuitPickerToNow(){
   setWheelValue('minute',now.getMinutes());
   setWheelValue('period',hour24>=12?'PM':'AM');
   constrainQuitPickerFuture();
-
   const recenter=()=>centerQuitPickerWheels();
   requestAnimationFrame(()=>requestAnimationFrame(recenter));
-  setTimeout(recenter,40);
-  setTimeout(recenter,120);
-  setTimeout(recenter,300);
-
-  if(picker.dataset.currentInitialized!=='true'){
-    picker.dataset.currentInitialized='true';
-    picker.querySelectorAll('select[data-wheel]').forEach(select=>{
-      select.addEventListener('change',()=>{
-        constrainQuitPickerFuture();
-        requestAnimationFrame(()=>centerWheel(select));
-      });
+  setTimeout(recenter,50);
+  setTimeout(recenter,150);
+  setTimeout(recenter,350);
+  picker.querySelectorAll('select[data-wheel]').forEach(select=>{
+    select.addEventListener('change',()=>{
+      constrainQuitPickerFuture();
+      requestAnimationFrame(()=>centerWheel(select));
     });
-  }
+  });
 }
 
 let queued=false;
