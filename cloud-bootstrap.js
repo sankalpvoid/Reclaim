@@ -1,5 +1,5 @@
 import { overlaySmokingMutations } from './smoking-journey.js';
-import { emptyReductionSync, normalizeReductionSync, planFromRow, mergeCloudConfirmations, markReductionPlanDirty } from './reduction-cloud.js';
+import { emptyReductionSync, normalizeReductionSync, mergeCloudReductionPlan, mergeCloudConfirmations } from './reduction-cloud.js';
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 import { fromDatabaseRows, normalizeBehaviorEvents, deriveSmokingEvents, deriveCravings } from './behavior-model.js';
 import './behavior-events.js';
@@ -76,16 +76,9 @@ async function bootstrap(){
   if(result.reductionPlan.status==='fulfilled'){
     const cloudRow=result.reductionPlan.value?.[0]||null;
     const cloudReviewRows=result.reductionReviews.status==='fulfilled'?(result.reductionReviews.value||[]):[];
-    if(cloudRow && !(sameOwner&&localReductionSync.planDirty&&state.reductionPlan)){
-      next.reductionPlan=planFromRow(cloudRow,cloudReviewRows);
-      if(sameOwner&&localReductionSync.reviewsDirty&&state.reductionPlan?.history?.length)next.reductionPlan.history=state.reductionPlan.history;
-      else if(result.reductionReviews.status!=='fulfilled'&&sameOwner&&state.reductionPlan?.history?.length)next.reductionPlan.history=state.reductionPlan.history;
-    }else if(!cloudRow&&sameOwner&&state.reductionPlan){
-      next.reductionPlan=state.reductionPlan;
-      markReductionPlanDirty(next,{reviews:Boolean(state.reductionPlan.history?.length)});
-    }else if(!cloudRow&&!sameOwner){
-      next.reductionPlan=null;
-    }
+    next.reductionPlan=mergeCloudReductionPlan(next,cloudRow,cloudReviewRows,{reviewsUnavailable:result.reductionReviews.status!=='fulfilled'});
+  }else if(!sameOwner){
+    next.reductionPlan=null;
   }
   if(next.reductionPlan)next.profile.dailyTarget=next.reductionPlan.currentTarget;
 
@@ -102,4 +95,3 @@ async function bootstrap(){
   window.dispatchEvent(new CustomEvent('reclaim:cloud-bootstrap',{detail:window.__reclaimCloudBootstrap}));
 }
 await bootstrap();
-
