@@ -1,4 +1,5 @@
 import { createInitialReductionPlan, buildWeeklyReview, applyWeeklyReview, getReductionProgress, summarizeToday } from './reduction-engine.js';
+import { markReductionPlanDirty } from './reduction-cloud.js';
 
 export function dayKey(value = new Date()) {
   const d = new Date(value);
@@ -37,6 +38,7 @@ export function ensurePlan(state, now = new Date()) {
   state.reductionPlan = {...plan,version:1,baselineSource:days.length>=4?'confirmed logs':'your estimate',
     startedOn:dayKey(now),reviewStart:dayKey(now),history:[],targetHistory:[{from:dayKey(now),target:plan.currentTarget}]};
   state.profile.dailyTarget = plan.currentTarget;
+  markReductionPlanDirty(state);
   return state.reductionPlan;
 }
 export function switchJourney(state, nextMode, now = new Date()) {
@@ -48,6 +50,7 @@ export function switchJourney(state, nextMode, now = new Date()) {
       plan.targetHistory = [...(plan.targetHistory||[]), {from:dayKey(now),target:nextMode==='reduce'?plan.currentTarget:null}];
     }
     if (nextMode === 'reduce') plan.reviewStart = dayKey(now);
+    markReductionPlanDirty(state);
   }
   state.profile.journeyMode = nextMode;
   return true;
@@ -75,6 +78,7 @@ export function commitReview(state, choice = 'continue', now = new Date(), expec
   }],targetHistory:[...(plan.targetHistory||[]),{from:today,target:next.currentTarget}]};
   state.reductionPlan = next;
   state.profile.dailyTarget = next.currentTarget;
+  markReductionPlanDirty(state,{reviews:true});
   return true;
 }
 export function targetOn(plan, key) {
