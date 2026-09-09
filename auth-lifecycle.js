@@ -1,8 +1,8 @@
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 
 // Single owner for Reclaim's startup/auth routing decisions.
-// app.js still renders the legacy intro first, but this module is the only compatibility
-// layer allowed to decide where an authenticated user belongs after that render.
+// app.js may still render the legacy intro as a compatibility path, while this
+// module decides where an authenticated user belongs after startup.
 
 const STATE_KEY='reclaim-state-v2';
 const SESSION_KEY='reclaim-session-v1';
@@ -43,6 +43,10 @@ function setStateRoute(stage,view=null){
   state.stage=stage;
   if(view)state.view=view;
   writeJson(STATE_KEY,state);
+}
+function routeChangedSinceStartup(){
+  const current=readJson(STATE_KEY)||{};
+  return (current.stage||'intro')!==(startupState.stage||'intro')||(current.view||'home')!==(startupState.view||'home');
 }
 function normalizeLifecycleOwner(userId){
   if(!userId)return;
@@ -197,7 +201,10 @@ async function resolveStartup(){
       if(app){const marker=document.createComment('welcome-ready');app.appendChild(marker);marker.remove()}
     }else{
       clearWelcome();
-      routeWhenReady(route.stage,route.view);
+      // A reload starts from the saved route immediately. If the user has
+      // already navigated while cloud validation was in flight, that newer
+      // choice wins and must not be overwritten by the startup route.
+      if(!(route.preserveReload&&routeChangedSinceStartup()))routeWhenReady(route.stage,route.view);
     }
     startupResolved=true;
   }catch(error){
@@ -206,14 +213,15 @@ async function resolveStartup(){
   }finally{resolvingStartup=false}
 }
 
-// Literal reloads should feel instant. Restore the exact saved stage immediately,
-// then let the cloud resolution above validate it without forcing an extra prompt.
+// Literal reloads are restored synchronously by startup-state-guard.js before
+// app.js evaluates. Do not create a legacy pending route here: on a direct
+// render that pending route can race later user clicks and push the UI back to
+// the page that happened to be open at startup.
 (function restoreLiteralReload(){
   const {token,userId}=authContext();
   if(startupNavigation!=='reload'||!token||!userId)return;
   normalizeLifecycleOwner(userId);
   if(!RESTORABLE_STAGES.has(startupState.stage))return;
-  routeWhenReady(startupState.stage,startupState.view||'home');
 })();
 
 // Password LOGIN is intercepted here so app.js never gets to apply its legacy "login -> mood" rule.
