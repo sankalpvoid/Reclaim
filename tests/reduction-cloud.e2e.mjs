@@ -96,6 +96,11 @@ function seededPlan(){
   };
 }
 
+async function waitForCloudBootstrap(page){
+  await page.waitForFunction(()=>window.__reclaimCloudBootstrap?.partial===false);
+  await page.locator('.sj-screen').waitFor();
+}
+
 async function openDevice({seedReduction=true}={}){
   const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'Asia/Kolkata'});
   await installApi(context);
@@ -114,8 +119,7 @@ async function openDevice({seedReduction=true}={}){
     logs:Array.from({length:7},(_,index)=>({at:`${day(index-7)}T12:00:00`,cigarettes:15}))
   });
   await page.goto(TEST_URL);
-  await page.locator('.sj-screen').waitFor();
-  await page.waitForFunction(()=>window.__reclaimCloudBootstrap?.partial===false);
+  await waitForCloudBootstrap(page);
   return {context,page};
 }
 
@@ -130,8 +134,6 @@ async function waitReductionClean(page){
 try{
   // DEVICE A: migrate an existing local Reduce plan and completed days into the cloud.
   const a=await openDevice({seedReduction:true});
-  await a.page.waitForFunction(()=>document.querySelector('.sj-screen'));
-  await a.page.waitForFunction(()=>true);
   for(let attempt=0;attempt<100&&!cloud.plan;attempt++)await new Promise(resolve=>setTimeout(resolve,25));
   for(let attempt=0;attempt<100&&cloud.confirmations.size<7;attempt++)await new Promise(resolve=>setTimeout(resolve,25));
   assert.ok(cloud.plan,'Device A should upload its existing Reduce plan');
@@ -152,7 +154,8 @@ try{
   assert.equal(cloud.reviews.length,0);
 
   // Reload while the review endpoint is still unavailable. Local review history must survive cloud hydration.
-  await a.page.reload();await a.page.locator('.sj-screen').waitFor();
+  await a.page.reload();
+  await waitForCloudBootstrap(a.page);
   state=await localState(a.page);
   assert.equal(state.reductionPlan.history.length,1,'pending review history must survive reload');
   assert.equal(state.reductionPlan.currentTarget,16);
@@ -172,7 +175,8 @@ try{
   assert.equal(state.dayConfirmations[day()],'smoke_free');
   assert.equal(state.reductionSync.confirmations[day()].kind,'upsert');
   assert.equal(cloud.confirmations.has(day()),false);
-  await a.page.reload();await a.page.locator('.sj-screen').waitFor();
+  await a.page.reload();
+  await waitForCloudBootstrap(a.page);
   state=await localState(a.page);
   assert.equal(state.dayConfirmations[day()],'smoke_free','offline confirmation must survive reload');
   assert.equal(state.reductionSync.confirmations[day()].kind,'upsert');
