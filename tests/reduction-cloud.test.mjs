@@ -5,6 +5,7 @@ import {
   confirmationMutationToRow,
   markReductionPlanDirty,
   mergeCloudConfirmations,
+  mergeCloudReductionPlan,
   planFromRow,
   planToRow,
   reviewToRow,
@@ -13,14 +14,15 @@ import {
 
 const userId='11111111-1111-4111-8111-111111111111';
 
+const review={reviewedOn:'2026-09-02',from:'2026-08-26',target:18,nextTarget:16,status:'stable',loggedDays:7,average:15,choice:'continue'};
+const plan={
+  version:1,baseline:20,baselineSource:'confirmed logs',currentTarget:16,stage:2,status:'active',
+  startedOn:'2026-08-26',reviewStart:'2026-09-02',lastReviewStatus:'stable',
+  lastReview:{status:'stable',nextTarget:16},targetHistory:[{from:'2026-08-26',target:18},{from:'2026-09-02',target:16}],
+  minimumAutomaticTarget:1,reductionRate:0.1,reviewWindowDays:7,targetChanged:true,history:[review]
+};
+
 test('reduction plan and review mappings preserve engine history',()=>{
-  const plan={
-    version:1,baseline:20,baselineSource:'confirmed logs',currentTarget:16,stage:2,status:'active',
-    startedOn:'2026-08-26',reviewStart:'2026-09-02',lastReviewStatus:'stable',
-    lastReview:{status:'stable',nextTarget:16},targetHistory:[{from:'2026-08-26',target:18},{from:'2026-09-02',target:16}],
-    minimumAutomaticTarget:1,reductionRate:0.1,reviewWindowDays:7,targetChanged:true,
-    history:[{reviewedOn:'2026-09-02',from:'2026-08-26',target:18,nextTarget:16,status:'stable',loggedDays:7,average:15,choice:'continue'}]
-  };
   const row=planToRow(plan,userId),reviewRow=reviewToRow(plan.history[0],userId);
   assert.equal(row.current_target,16);
   assert.equal(row.baseline_source,'confirmed logs');
@@ -32,6 +34,22 @@ test('reduction plan and review mappings preserve engine history',()=>{
   assert.equal(restored.stage,2);
   assert.equal(restored.history.length,1);
   assert.deepEqual(restored.history[0],plan.history[0]);
+});
+
+test('pending review history remains authoritative after plan snapshot reaches cloud',()=>{
+  const state={reductionPlan:structuredClone(plan),reductionSync:{}};
+  markReductionPlanDirty(state,{reviews:true});
+  assert.equal(state.reductionSync.planDirty,true);
+  assert.equal(state.reductionSync.reviewsDirty,true);
+  assert.deepEqual(state.reductionSync.pendingReviews,[review]);
+
+  // Simulate the plan upsert succeeding while review-history upsert fails.
+  state.reductionSync.planDirty=false;
+  const restored=mergeCloudReductionPlan(state,planToRow(plan,userId),[]);
+  assert.equal(restored.currentTarget,16);
+  assert.deepEqual(restored.history,[review]);
+  assert.equal(state.reductionSync.reviewsDirty,true);
+  assert.deepEqual(state.reductionSync.pendingReviews,[review]);
 });
 
 test('plan and confirmation changes create durable pending sync markers',()=>{
