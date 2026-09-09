@@ -50,6 +50,7 @@ jobs:
           node --check behavior-model.js
           node --check behavior-events.js
           node --check quick-theme-toggle.js
+          node --check accessibility-runtime.js
           node --check tests/foundation-regression.mjs
           node --check tests/reduction-cloud.test.mjs
           node --check tests/theme-regression.mjs
