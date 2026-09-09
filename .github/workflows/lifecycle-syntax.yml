@@ -49,6 +49,7 @@ jobs:
           node --check behavior-events.js
           node --check tests/foundation-regression.mjs
           node --check tests/smoking-journey.e2e.mjs
+          node --check tests/responsive.e2e.mjs
       - name: Run foundation regression tests
         run: node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs
 
@@ -79,10 +80,11 @@ jobs:
           done
           cat /tmp/reclaim-http.log
           exit 1
-      - name: Run smoking journey browser suite
+      - name: Run browser suites
         env:
           PLAYWRIGHT_PATH: /tmp/reclaim-playwright/node_modules/playwright
         run: |
           CHROME_PATH="$(node -e "const { chromium } = require('/tmp/reclaim-playwright/node_modules/playwright'); process.stdout.write(chromium.executablePath())")"
           export CHROME_PATH
           node tests/smoking-journey.e2e.mjs
+          node tests/responsive.e2e.mjs
