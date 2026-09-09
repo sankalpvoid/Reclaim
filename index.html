@@ -20,27 +20,12 @@
     <style>
       html,body{margin:0;min-height:100%;background:#07020f;color:#fff}
       #app{min-height:100dvh}
-      .intro-boot{
-        position:relative;
-        width:min(100%,430px);
-        height:100dvh;
-        min-height:100dvh;
-        margin:0 auto;
-        overflow:hidden;
-        background:#07020f;
-      }
-      .intro-boot img{
-        position:absolute;
-        inset:0;
-        width:100%;
-        height:100%;
-        object-fit:fill;
-        display:block;
-      }
-      @media(min-width:700px){
-        body{padding:20px;background:#050505}
-        .intro-boot{height:calc(100dvh - 40px);min-height:calc(100dvh - 40px);border-radius:28px}
-      }
+      .intro-boot{position:relative;width:min(100%,430px);height:100dvh;min-height:100dvh;margin:0 auto;overflow:hidden;background:#07020f}
+      .intro-boot img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}
+      #reclaim-restore-host{position:fixed;z-index:2147483646;inset:0;overflow:hidden;background:#07020f;pointer-events:none}
+      #reclaim-restore-host:empty{display:none}
+      #reclaim-restore-host>.shell,#reclaim-restore-host>main,#reclaim-restore-host>section{margin-left:auto!important;margin-right:auto!important}
+      @media(min-width:700px){body{padding:20px;background:#050505}.intro-boot{height:calc(100dvh - 40px);min-height:calc(100dvh - 40px);border-radius:28px}#reclaim-restore-host{inset:20px;border-radius:28px}}
     </style>
 
     <link rel="preload" as="image" href="assets/begin-journey-reference.png" />
@@ -61,17 +46,49 @@
     <link rel="stylesheet" href="smoking-journey.css?v=1" />
   </head>
   <body>
-    <div id="app" aria-live="polite">
-      <div class="intro-boot" aria-hidden="true">
-        <img src="assets/begin-journey-reference.png" alt="" fetchpriority="high" />
-      </div>
-    </div>
+    <div id="reclaim-restore-host" aria-hidden="true"></div>
+    <div id="app" aria-live="polite"></div>
 
-    <!-- Register the exact intro replacement before app.js renders the legacy intro. -->
+    <script>
+      (()=>{
+        const STATE='reclaim-state-v2',SESSION='reclaim-session-v1',SNAPSHOT='reclaim-live-page-v1';
+        const app=document.getElementById('app');
+        const host=document.getElementById('reclaim-restore-host');
+        const parse=(key,fallback={})=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
+        const state=parse(STATE,{}),session=parse(SESSION,{});
+        const stage=state.stage||'intro',view=state.view||'home';
+        const userId=session?.user?.id||session?.user_id||session?.id||null;
+
+        if(stage==='intro'){
+          app.innerHTML='<div class="intro-boot" aria-hidden="true"><img src="assets/begin-journey-reference.png" alt="" fetchpriority="high" /></div>';
+          return;
+        }
+
+        const snapshot=parse(SNAPSHOT,null);
+        const valid=snapshot?.html&&snapshot.stage===stage&&(!snapshot.view||snapshot.view===view)&&(snapshot.userId||null)===(userId||null)&&Number(snapshot.capturedAt||0)>Date.now()-7*24*60*60*1000;
+        if(valid)host.innerHTML=snapshot.html;
+        else host.innerHTML='<div style="width:min(100%,430px);height:100dvh;margin:0 auto;background:#07020f"></div>';
+
+        const ready=()=>{
+          if(!app.firstElementChild)return false;
+          if(stage!=='intro'&&app.querySelector('.intro-reference'))return false;
+          if(stage==='auth'&&!app.querySelector('#auth-form'))return false;
+          if(stage==='path'&&!app.querySelector('.path-screen'))return false;
+          if(stage==='app'&&(!app.querySelector('.shell')||app.querySelector('#auth-form,.path-screen')))return false;
+          return true;
+        };
+        const release=()=>{if(!ready())return;host.remove();observer.disconnect()};
+        const observer=new MutationObserver(release);
+        observer.observe(app,{childList:true,subtree:true});
+        requestAnimationFrame(release);
+        setTimeout(()=>{if(document.body.contains(host)&&ready())host.remove()},5000);
+      })();
+    </script>
+
     <script src="intro-reference-v2.js?v=3"></script>
     <script type="module" src="auth-lifecycle.js?v=auth-lifecycle-2"></script>
     <script type="module" src="cloud-bootstrap.js?v=cloud-bootstrap-1"></script>
-    <script type="module" src="app.js?v=light-1"></script>
+    <script type="module" src="app.js?v=refresh-state-2"></script>
     <script type="module" src="welcome-back.js?v=welcome-back-3"></script>
     <script type="module" src="checkin-sync.js?v=session-lifecycle-4"></script>
     <script type="module" src="manual-checkin.js?v=manual-checkin-1"></script>
@@ -80,5 +97,6 @@
     <script src="quick-theme-toggle.js?v=theme-toggle-1" defer></script>
     <script type="module" src="analytics.js?v=analytics-1"></script>
     <script type="module" src="skeleton-snapshot.js?v=skeleton-snapshot-1"></script>
+    <script src="page-restore.js?v=1" defer></script>
   </body>
 </html>
