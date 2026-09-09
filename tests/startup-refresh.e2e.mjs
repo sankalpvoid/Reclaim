@@ -42,29 +42,33 @@ try{
   });
 
   await context.addInitScript(({user,quitAt})=>{
-    localStorage.setItem('reclaim-state-v2',JSON.stringify({
-      stage:'app',
-      view:'home',
-      profile:{
-        name:'Refresh Test',
-        journeyMode:'quit',
-        quitAt,
-        cigarettesPerDay:20,
-        dailyTarget:15,
-        pricePerPack:300,
-        cigarettesPerPack:20,
-        minutesPerCigarette:11,
-        country:'IN',
-        currency:'₹',
-        currencyCode:'INR'
-      },
-      smokingEvents:[],
-      checkins:[],
-      cravings:[],
-      goals:[]
-    }));
-    localStorage.setItem('reclaim-session-v1',JSON.stringify({access_token:'test-token',user}));
-    localStorage.setItem('reclaim-lifecycle-v1',JSON.stringify({userId:user.id,lastActiveAt:Date.now()}));
+    // addInitScript runs again on page.reload(). Seed only once so the test
+    // does not accidentally reset the very route persistence it is checking.
+    if(!localStorage.getItem('reclaim-state-v2')){
+      localStorage.setItem('reclaim-state-v2',JSON.stringify({
+        stage:'app',
+        view:'home',
+        profile:{
+          name:'Refresh Test',
+          journeyMode:'quit',
+          quitAt,
+          cigarettesPerDay:20,
+          dailyTarget:15,
+          pricePerPack:300,
+          cigarettesPerPack:20,
+          minutesPerCigarette:11,
+          country:'IN',
+          currency:'₹',
+          currencyCode:'INR'
+        },
+        smokingEvents:[],
+        checkins:[],
+        cravings:[],
+        goals:[]
+      }));
+    }
+    if(!localStorage.getItem('reclaim-session-v1'))localStorage.setItem('reclaim-session-v1',JSON.stringify({access_token:'test-token',user}));
+    if(!localStorage.getItem('reclaim-lifecycle-v1'))localStorage.setItem('reclaim-lifecycle-v1',JSON.stringify({userId:user.id,lastActiveAt:Date.now()}));
   },{user,quitAt});
 
   await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173');
@@ -82,6 +86,7 @@ try{
 
   await page.reload();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('reclaim-state-v2')||'{}').view==='more');
+  await page.locator('.more-screen').waitFor();
   assert.equal(await page.locator('.intro-reference').count(),0,'A non-home page must survive refresh without intro flash');
 
   await page.locator('[data-view=home]').first().click();
