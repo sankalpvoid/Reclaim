@@ -46,7 +46,7 @@
     <link rel="stylesheet" href="smoking-journey.css?v=1" />
   </head>
   <body>
-    <div id="reclaim-restore-host" aria-hidden="true"></div>
+    <div id="reclaim-restore-host" aria-hidden="true" inert></div>
     <div id="app" aria-live="polite"></div>
 
     <script>
@@ -81,7 +81,11 @@
         const observer=new MutationObserver(release);
         observer.observe(app,{childList:true,subtree:true});
         requestAnimationFrame(release);
-        setTimeout(()=>{if(document.body.contains(host)&&ready())host.remove()},5000);
+        setTimeout(()=>{
+          if(!document.body.contains(host))return;
+          host.remove();
+          observer.disconnect();
+        },5000);
       })();
     </script>
 
