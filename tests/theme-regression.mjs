@@ -18,3 +18,8 @@ test('ui polish is not loaded both as a classic script and an imported module', 
 test('unused page snapshot writer is not loaded at runtime', () => {
   assert.doesNotMatch(indexHtml, /<script[^>]+src=["']skeleton-snapshot\.js/);
 });
+
+test('the whole app is not an aria-live region', () => {
+  assert.doesNotMatch(indexHtml, /id=["']app["'][^>]*aria-live/);
+  assert.match(indexHtml, /accessibility-runtime\.js/);
+});
