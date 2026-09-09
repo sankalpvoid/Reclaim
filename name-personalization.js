@@ -31,11 +31,19 @@ async function resolveName(){
   return '';
 }
 function greeting(){const h=new Date().getHours();return h<12?'GOOD MORNING':h<17?'GOOD AFTERNOON':'GOOD EVENING'}
+function replaceWithLines(element,lines=[]){
+  if(!element)return;
+  element.replaceChildren();
+  lines.forEach((line,index)=>{
+    if(index)element.appendChild(document.createElement('br'));
+    element.appendChild(document.createTextNode(String(line)));
+  });
+}
 function addMoodName(name){
   const screen=document.querySelector('#app > .shell .screen.full');if(!screen)return;
   const h1=screen.querySelector('h1');if(!h1||!h1.textContent.includes('HOW ARE'))return;
   const p=screen.querySelector('h1 + p.muted');
-  if(p)p.innerHTML=`${name}, your journey matters.<br>Let's keep going.`;
+  if(p)replaceWithLines(p,[`${name}, your journey matters.`,`Let's keep going.`]);
 }
 function addHomeName(name){
   const hero=document.querySelector('.home-screen .home-hero-copy');if(!hero)return;
@@ -49,10 +57,10 @@ function addHomeName(name){
 function addSupportName(name){
   const screen=document.querySelector('.struggling-support');if(!screen)return;
   const heading=screen.querySelector('h1');
-  if(heading)heading.innerHTML=`TODAY<br>FEELS HARD, ${name.toUpperCase()}.`;
+  if(heading)replaceWithLines(heading,['TODAY',`FEELS HARD, ${name.toUpperCase()}.`]);
   if(latestMood()==='struggling'){
     const copy=screen.querySelector('h1 + p.muted');
-    if(copy)copy.innerHTML=`You only need to get through this moment.<br>Look at what you've already reclaimed.`;
+    if(copy)replaceWithLines(copy,[`You only need to get through this moment.`,`Look at what you've already reclaimed.`]);
   }
 }
 function apply(name){if(!name)return;addMoodName(name);addHomeName(name);addSupportName(name)}
