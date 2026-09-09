@@ -1,4 +1,5 @@
 import {dayKey,shiftDay,ensurePlan,journeySummary,commitReview,targetOn} from './smoking-journey.js';
+import {clearDayConfirmation,confirmationMutationToRow,normalizeReductionSync,planToRow,reviewToRow,setDayConfirmation} from './reduction-cloud.js';
 
 export function createSmokingJourney(ctx) {
   const {esc,money,appIcon,shell,top,modal,closeModal,toast} = ctx;
@@ -13,21 +14,23 @@ export function createSmokingJourney(ctx) {
   const button=(label,attr,cls='secondary')=>`<button class="${cls}" ${attr}>${label}</button>`;
   const stat=(label,value,detail='')=>`<article class="card sj-stat"><small>${label}</small><strong>${value}</strong><span>${detail}</span></article>`;
   const dateLabel=key=>new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric'}).format(new Date(`${key}T12:00:00`));
+  const reductionPending=()=>{const r=state().reductionSync||{};return (r.planDirty?1:0)+(r.reviewsDirty?1:0)+Object.keys(r.confirmations||{}).length};
+  const pendingChanges=()=>Object.keys(state().smokingMutations||{}).length+reductionPending();
   function week(s) {
     const max=Math.max(...s.days.map(d=>d.count),state().reductionPlan?.currentTarget||0,1);
     return `<article class="card sj-week"><div class="eyebrow">LAST 7 DAYS · TAP A DAY</div><div class="sj-bars">${s.days.map(d=>`<button data-smoking-day="${d.key}" aria-label="${d.label} ${dateLabel(d.key)}: ${d.known?d.count+' logged':'not tracked'}${d.complete?', complete':''}"><span class="sj-bar-space"><i style="height:${d.known?Math.max(3,d.count/max*100):0}%"></i></span><b>${d.known?d.count:'—'}</b><small>${d.label}</small><em>${d.complete?'✓':d.known?'partial':'—'}</em></button>`).join('')}</div><p class="muted small">✓ Confirmed total · partial = logs may be incomplete · — = unknown</p></article>`;
   }
   function planCard(s) {
     if(!s.progress)return '';
-    const p=state().reductionPlan,r=s.review;
-    return `<article class="card sj-plan"><div class="eyebrow">YOUR REDUCE PLAN · STAGE ${p.stage}</div><div class="sj-plan-numbers"><span><small>BASELINE</small><strong>${p.baseline}</strong></span><b>→</b><span><small>DAILY TARGET</small><strong>${p.currentTarget}</strong></span></div><p class="muted small">Baseline from ${esc(p.baselineSource)}. Target is ${s.progress.percentReduced}% below baseline; this is your plan, not a claim about actual smoking.</p>${s.actualReduction!==null?`<p>Confirmed-day average: ${s.average.toFixed(1)} · ${Math.abs(s.actualReduction)}% ${s.actualReduction>=0?'below':'above'} baseline.</p>`:''}<p class="muted small">${r.due?'Review available':`Next review: ${dateLabel(r.dueOn)}`} · ${r.loggedDays}/4 complete days needed</p>${button('REVIEW MY STAGE','data-smoking-review')}${p.lastReview?`<p class="muted small">Last review: ${esc(p.lastReviewStatus.replaceAll('_',' '))}. Target ${p.currentTarget}/day.</p>`:''}<p class="sj-local-note">Plan history and day confirmations are saved on this device.</p></article>`;
+    const p=state().reductionPlan,r=s.review,cloud=Boolean(ctx.getSession()?.user);
+    return `<article class="card sj-plan"><div class="eyebrow">YOUR REDUCE PLAN · STAGE ${p.stage}</div><div class="sj-plan-numbers"><span><small>BASELINE</small><strong>${p.baseline}</strong></span><b>→</b><span><small>DAILY TARGET</small><strong>${p.currentTarget}</strong></span></div><p class="muted small">Baseline from ${esc(p.baselineSource)}. Target is ${s.progress.percentReduced}% below baseline; this is your plan, not a claim about actual smoking.</p>${s.actualReduction!==null?`<p>Confirmed-day average: ${s.average.toFixed(1)} · ${Math.abs(s.actualReduction)}% ${s.actualReduction>=0?'below':'above'} baseline.</p>`:''}<p class="muted small">${r.due?'Review available':`Next review: ${dateLabel(r.dueOn)}`} · ${r.loggedDays}/4 complete days needed</p>${button('REVIEW MY STAGE','data-smoking-review')}${p.lastReview?`<p class="muted small">Last review: ${esc(p.lastReviewStatus.replaceAll('_',' '))}. Target ${p.currentTarget}/day.</p>`:''}<p class="sj-local-note">${cloud?'Plan history and completed-day records sync to your account.':'Plan history and completed-day records stay on this device until you sign in.'}</p></article>`;
   }
   function home() {
     const s=summary(),t=s.todayProgress, p=state().profile;
     const cost=s.today.count*(+p.pricePerPack/+p.cigarettesPerPack);
     const gap=s.last?Math.max(0,Math.floor((Date.now()-new Date(s.last.at))/60000)):null;
     const review=s.review;
-    const pending=Object.keys(state().smokingMutations||{}).length;
+    const pending=pendingChanges();
     const gapLabel=gap===null?'—':gap<60?gap+'m':Math.floor(gap/60)+'h '+gap%60+'m';
     return shell(`<section class="screen tracking-home sj-screen sj-today">${top('RECLAIM')}
       <div class="tracking-intro"><div class="sj-day-heading"><span class="eyebrow">${mode()==='reduce'?'SMOKE LESS':'YOUR SMOKING'}</span><span class="tracking-date">${esc(new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date()))}</span></div><h1>${s.today.count}<small>TODAY</small></h1></div>
@@ -37,7 +40,7 @@ export function createSmokingJourney(ctx) {
       <dl class="sj-today-meta"><div><dt>Since last cigarette</dt><dd>${gapLabel}</dd></div><div><dt>Spent today</dt><dd>${money(cost)}</dd></div></dl>
       ${review?`<button class="sj-review-row" data-smoking-review><span>${appIcon('trending_down')}</span><span><strong>${review.due?'Your weekly review is ready':'Your next small step'}</strong><small>Stage ${state().reductionPlan.stage} · ${review.due?`${review.loggedDays} complete days`:`Review ${dateLabel(review.dueOn)}`}</small></span><b aria-hidden="true">›</b></button>`:''}
       <button class="sj-insight-row" data-smoking-for-you><span>${appIcon('lightbulb')}</span><span><small>FOR YOU</small><strong>${s.hardTime?`Your busiest window is ${esc(s.hardTime.label.split(' (')[0])}.`:'A little insight for your next step.'}</strong></span><b aria-hidden="true">›</b></button>
-      <details class="sj-storage-details"><summary>Storage & sync</summary>${pending?'':syncStatus()}<p class="sj-local-note">Plan history and day confirmations stay on this device.</p></details>
+      <details class="sj-storage-details"><summary>Storage & sync</summary>${syncStatus()}</details>
     </section>`);
   }
 
@@ -47,10 +50,11 @@ export function createSmokingJourney(ctx) {
     return shell(`<section class="screen tracking-insights sj-screen">${top('YOUR PATTERNS')}<div class="eyebrow">${mode()==='reduce'?'YOUR REDUCTION JOURNEY':'OBSERVE AT YOUR OWN PACE'}</div><h1>NOTICE.<br><span class="purple">DON’T JUDGE.</span></h1><p class="muted">Patterns from your records. Incomplete days never count as smoke-free wins.</p><div class="sj-grid">${stat('COMPLETE-DAY AVERAGE',s.average===null?'—':s.average.toFixed(1),`${s.closed.length} complete past days this week`)}${stat('LOGGING CONSISTENCY',s.consistency+' days','Consecutive confirmed past days')}${s.progress?stat('DAYS WITHIN TARGET',`${s.successDays}/${s.targetDays}`,'Complete days with a known target')+stat('WITHIN-TARGET STREAK',s.targetStreak+' days','Uses each day’s target'):''}</div>${week(s)}${notes.map(text=>`<article class="card sj-note">${appIcon('lightbulb')}<p>${esc(text)}</p></article>`).join('')}${s.progress?`<article class="card sj-comparison"><div class="eyebrow">ACTUAL VS TARGET</div>${s.days.map(d=>{const t=targetOn(state().reductionPlan,d.key);return `<div><span>${d.label} ${dateLabel(d.key)}</span><strong>${d.known?d.count:'—'} / ${t??'—'}</strong><small>${d.complete?'complete':'incomplete'}</small></div>`}).join('')}</article>`:''}${planCard(s)}${button('REVIEW LOGS OR COMPLETE A DAY','data-smoking-add-day')}${button('CHANGE MY PACE','data-change-path')}</section>`);
   }
   function syncStatus(){
-    const pending=Object.keys(state().smokingMutations||{}).length;
-    if(!ctx.getSession()?.user)return '<p class="sj-local-note">Logs saved on this device.</p>';
-    if(!pending && (state().smokingEvents||[]).some(e=>!e.cloudId))return '<p class="sj-local-note">New changes are synced. Some earlier logs are only on this device.</p>';
-    return pending?`<p class="sj-local-note">${pending} change${pending===1?'':'s'} saved here, waiting to sync.</p>${button('RETRY SYNC','data-smoking-sync')}`:'<p class="sj-local-note">Smoking logs synced to your account.</p>';
+    const smokingPending=Object.keys(state().smokingMutations||{}).length,reducePending=reductionPending(),pending=smokingPending+reducePending;
+    if(!ctx.getSession()?.user)return '<p class="sj-local-note">Records are saved on this device. Sign in to sync them across devices.</p>';
+    if(pending)return `<p class="sj-local-note">${pending} change${pending===1?'':'s'} saved here, waiting to sync.</p>${button('RETRY SYNC','data-smoking-sync')}`;
+    if((state().smokingEvents||[]).some(e=>!e.cloudId))return '<p class="sj-local-note">New changes are synced. Some earlier smoking logs are only on this device.</p>';
+    return '<p class="sj-local-note">Smoking logs, Reduce plan and completed-day records are synced to your account.</p>';
   }
   let syncing=false;
   async function sync() {
@@ -71,6 +75,44 @@ export function createSmokingJourney(ctx) {
       }
     }finally{syncing=false;if(state()===current&&ctx.getSession()?.user?.id===owner&&mode()!=='quit'&&state().stage==='app')ctx.render();}
   }
+  let syncingReduction=false;
+  async function syncReduction() {
+    if(syncingReduction||!ctx.getSession()?.user)return;
+    syncingReduction=true;
+    const owner=ctx.getSession().user.id,current=state();
+    current.reductionSync=normalizeReductionSync(current.reductionSync);
+    try {
+      if(current.reductionSync.planDirty&&current.reductionPlan){
+        const row=planToRow(current.reductionPlan,owner);
+        if(row){
+          await ctx.api('/rest/v1/reduction_plans?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
+          if(ctx.getSession()?.user?.id!==owner||state()!==current)return;
+          current.reductionSync.planDirty=false;save();
+        }
+      }
+      if(current.reductionSync.reviewsDirty){
+        const rows=(current.reductionPlan?.history||[]).map(review=>reviewToRow(review,owner)).filter(Boolean);
+        if(rows.length)await ctx.api('/rest/v1/reduction_reviews?on_conflict=user_id,reviewed_on,review_start',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(rows)});
+        if(ctx.getSession()?.user?.id!==owner||state()!==current)return;
+        current.reductionSync.reviewsDirty=false;save();
+      }
+      for(const [day,job] of Object.entries(current.reductionSync.confirmations||{})){
+        if(ctx.getSession()?.user?.id!==owner||state()!==current)break;
+        try{
+          if(job.kind==='delete')await ctx.api(`/rest/v1/daily_smoking_confirmations?user_id=eq.${owner}&day=eq.${encodeURIComponent(day)}`,{method:'DELETE',headers:{Prefer:'return=minimal'}});
+          else{
+            const row=confirmationMutationToRow(day,job,owner);
+            if(!row)continue;
+            await ctx.api('/rest/v1/daily_smoking_confirmations?on_conflict=user_id,day',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
+          }
+          if(ctx.getSession()?.user?.id!==owner||state()!==current)break;
+          if(current.reductionSync.confirmations[day]===job)delete current.reductionSync.confirmations[day];
+          save();
+        }catch{break;}
+      }
+    }catch{}finally{syncingReduction=false;if(state()===current&&ctx.getSession()?.user?.id===owner&&mode()!=='quit'&&state().stage==='app')ctx.render();}
+  }
+  function syncAll(){void sync();void syncReduction();}
   function queue(id,kind,event){
     state().smokingMutations={...(state().smokingMutations||{}),[id]:{kind,event,ownerId:ctx.getSession()?.user?.id||null}};
   }
@@ -81,10 +123,9 @@ export function createSmokingJourney(ctx) {
     state().smokingEvents=(state().smokingEvents||[]).filter(e=>e!==existing);
     state().smokingEvents.push(event);
     // A correction invalidates the old completeness assertion until it is reconfirmed.
-    state().dayConfirmations={...(state().dayConfirmations||{})};
-    delete state().dayConfirmations[dayKey(event.at)];
-    if(existing)delete state().dayConfirmations[dayKey(existing.at)];
-    queue(id,'upsert',event);save();ctx.render();void sync();
+    clearDayConfirmation(state(),dayKey(event.at));
+    if(existing&&dayKey(existing.at)!==dayKey(event.at))clearDayConfirmation(state(),dayKey(existing.at));
+    queue(id,'upsert',event);save();ctx.render();syncAll();
   }
   function quickLog(){try{updateLog(null,new Date(),1);toast('Cigarette logged. Review today to edit or remove it.')}catch(e){toast(e.message)}}
   function editLog(existing=null,day=dayKey()) {
@@ -95,29 +136,30 @@ export function createSmokingJourney(ctx) {
     document.querySelector('[data-smoking-remove]')?.addEventListener('click',()=>{
       state().smokingEvents=state().smokingEvents.filter(e=>e!==existing);
       if(existing.cloudId)queue(existing.cloudId,'delete');
-      delete (state().dayConfirmations||{})[dayKey(existing.at)];save();closeModal();ctx.render();toast('Log removed.');void sync();
+      clearDayConfirmation(state(),dayKey(existing.at));save();closeModal();ctx.render();toast('Log removed.');syncAll();
     });
   }
   function dayDetail(key=dayKey()) {
     if(!dayKey(`${key}T12:00:00`)||key>dayKey())return;
     closeModal();const logs=(state().smokingEvents||[]).filter(e=>dayKey(e.at)===key).sort((a,b)=>new Date(b.at)-new Date(a.at));
-    const count=logs.reduce((n,e)=>n + +e.cigarettes,0);
-    modal(`<div class="sj-modal"><div class="eyebrow">${dateLabel(key)} · YOUR RECORD</div><h2>${count} CIGARETTES</h2><div class="sj-log-list">${logs.length?logs.map((e,i)=>`<button class="secondary" data-smoking-edit="${i}"><span>${new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit'}).format(new Date(e.at))}</span><strong>${e.cigarettes} cigarette${e.cigarettes===1?'':'s'}</strong><small>EDIT</small></button>`).join(''):'<p class="muted">No cigarettes recorded. This is not automatically a smoke-free day.</p>'}</div>${button('ADD A MISSING LOG','data-smoking-missing')}<p class="muted small">Confirm only when this is the full day’s total. Adding or changing a log reopens the day.</p>${button(`CONFIRM ${count} AS FULL-DAY TOTAL`,'data-smoking-complete','primary')}${button('MARK DAY INCOMPLETE','data-smoking-incomplete')}<p class="sj-local-note">Day confirmations stay on this device. Today is excluded from reviews until tomorrow.</p></div>`);
+    const count=logs.reduce((n,e)=>n + +e.cigarettes,0),cloud=Boolean(ctx.getSession()?.user);
+    modal(`<div class="sj-modal"><div class="eyebrow">${dateLabel(key)} · YOUR RECORD</div><h2>${count} CIGARETTES</h2><div class="sj-log-list">${logs.length?logs.map((e,i)=>`<button class="secondary" data-smoking-edit="${i}"><span>${new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit'}).format(new Date(e.at))}</span><strong>${e.cigarettes} cigarette${e.cigarettes===1?'':'s'}</strong><small>EDIT</small></button>`).join(''):'<p class="muted">No cigarettes recorded. This is not automatically a smoke-free day.</p>'}</div>${button('ADD A MISSING LOG','data-smoking-missing')}<p class="muted small">Confirm only when this is the full day’s total. Adding or changing a log reopens the day.</p>${button(`CONFIRM ${count} AS FULL-DAY TOTAL`,'data-smoking-complete','primary')}${button('MARK DAY INCOMPLETE','data-smoking-incomplete')}<p class="sj-local-note">${cloud?'Completed-day status syncs to your account. Today is excluded from reviews until tomorrow.':'Completed-day status stays on this device until you sign in. Today is excluded from reviews until tomorrow.'}</p></div>`);
     document.querySelectorAll('[data-smoking-edit]').forEach(b=>b.onclick=()=>editLog(logs[+b.dataset.smokingEdit],key));
     document.querySelector('[data-smoking-missing]').onclick=()=>editLog(null,key);
-    document.querySelector('[data-smoking-complete]').onclick=()=>{state().dayConfirmations={...(state().dayConfirmations||{}),[key]:count?'complete':'smoke_free'};save();closeModal();ctx.render();toast('Full-day total confirmed.');};
-    document.querySelector('[data-smoking-incomplete]').onclick=()=>{state().dayConfirmations={...(state().dayConfirmations||{}),[key]:'untracked'};save();closeModal();ctx.render();toast('Day marked incomplete.');};
+    document.querySelector('[data-smoking-complete]').onclick=()=>{setDayConfirmation(state(),key,count?'complete':'smoke_free',count);save();closeModal();ctx.render();toast('Full-day total confirmed.');void syncReduction();};
+    document.querySelector('[data-smoking-incomplete]').onclick=()=>{setDayConfirmation(state(),key,'untracked',count);save();closeModal();ctx.render();toast('Day marked incomplete.');void syncReduction();};
   }
   function chooseDay(){closeModal();modal(`<h2>REVIEW A DAY</h2><form id="smoking-day-form" class="stack"><label>Date<input class="field" name="day" type="date" max="${dayKey()}" value="${dayKey()}" required></label><button class="primary">OPEN DAY</button></form>`);document.querySelector('#smoking-day-form').onsubmit=e=>{e.preventDefault();dayDetail(new FormData(e.target).get('day'))};}
   function review() {
     if(mode()!=='reduce')return;
     closeModal();const s=summary(),r=s.review,p=state().reductionPlan;
     modal(`<div class="sj-modal"><div class="eyebrow">STAGE ${p.stage} · WEEKLY REVIEW</div><h2>${!r.due?'KEEP BUILDING.':r.status==='stable'?'STEADY PROGRESS.':r.status==='mixed'?'STAY WITH IT.':r.status==='struggling'?'GIVE IT TIME.':'A LITTLE MORE DATA.'}</h2><p class="muted">${r.due?esc(r.message):`Your seven-day review opens ${dateLabel(r.dueOn)}. Keep the ${p.currentTarget}/day target until then.`}</p><p>${r.loggedDays} complete past days · ${r.average===null?'No average yet':r.average.toFixed(1)+' cigarettes/day'}</p>${r.due&&r.status!=='collect_more_data'?`${r.action==='offer_adjustment'?button(`TRY ${r.nextTarget}/DAY FOR THE NEXT WEEK`,'data-smoking-apply="adjust"','primary')+button(`KEEP ${p.currentTarget}/DAY`,'data-smoking-apply="hold"'):button(r.action==='reduce'?`START NEXT STAGE · ${r.nextTarget}/DAY`:`KEEP ${p.currentTarget}/DAY FOR NEXT WEEK`,'data-smoking-apply="continue"','primary')}`:button('COMPLETE A PAST DAY','data-smoking-review-day')}${r.action==='offer_quit_transition'&&r.due?button('EXPLORE QUIT NOW','data-smoking-quit'):''}<p class="muted small">Targets never automatically fall below 1/day. A review uses only complete past days and can be applied once per week.</p>${(p.history||[]).length?`<details><summary>Past reviews</summary>${p.history.slice(-8).reverse().map(h=>`<p>${dateLabel(h.reviewedOn)} · ${esc(h.status)} · ${h.target} → ${h.nextTarget}/day</p>`).join('')}</details>`:''}</div>`);
-    document.querySelectorAll('[data-smoking-apply]').forEach(b=>b.onclick=()=>{if(commitReview(state(),b.dataset.smokingApply,new Date(),r.windowKey)){save();closeModal();ctx.render();toast('Your next week is ready.');void ctx.persistProfile().catch(()=>toast('Plan saved here. Account target has not synced.'));}});
+    document.querySelectorAll('[data-smoking-apply]').forEach(b=>b.onclick=()=>{if(commitReview(state(),b.dataset.smokingApply,new Date(),r.windowKey)){save();closeModal();ctx.render();toast('Your next week is ready.');void ctx.persistProfile().catch(()=>toast('Plan saved here. Account target has not synced.'));void syncReduction();}});
     document.querySelector('[data-smoking-review-day]')?.addEventListener('click',chooseDay);
     document.querySelector('[data-smoking-quit]')?.addEventListener('click',()=>{closeModal();state().pathReturn='more';state().stage='path';save();ctx.render();});
   }
   function bind() {
+    void syncReduction();
     if(mode()==='quit')return;
     document.querySelector('[data-log-cigarette]')?.addEventListener('click',quickLog);
     document.querySelectorAll('[data-smoking-day]').forEach(b=>b.onclick=()=>dayDetail(b.dataset.smokingDay));
@@ -125,8 +167,8 @@ export function createSmokingJourney(ctx) {
     document.querySelector('[data-smoking-for-you]')?.addEventListener('click',ctx.openForYou);
     document.querySelector('[data-smoking-add]')?.addEventListener('click',()=>editLog());
     document.querySelector('[data-smoking-add-day]')?.addEventListener('click',chooseDay);
-    document.querySelector('[data-smoking-sync]')?.addEventListener('click',()=>void sync());
+    document.querySelector('[data-smoking-sync]')?.addEventListener('click',syncAll);
   }
-  window.addEventListener('online',()=>void sync());
-  return {home,patterns,bind,review,dayDetail,quickLog,sync,save};
+  window.addEventListener('online',syncAll);
+  return {home,patterns,bind,review,dayDetail,quickLog,sync,syncReduction,save};
 }
