@@ -49,14 +49,16 @@ jobs:
           node --check cloud-bootstrap.js
           node --check behavior-model.js
           node --check behavior-events.js
+          node --check quick-theme-toggle.js
           node --check tests/foundation-regression.mjs
           node --check tests/reduction-cloud.test.mjs
+          node --check tests/theme-regression.mjs
           node --check tests/smoking-journey.e2e.mjs
           node --check tests/reduction-cloud.e2e.mjs
           node --check tests/responsive.e2e.mjs
           node --check tests/startup-refresh.e2e.mjs
       - name: Run foundation regression tests
-        run: node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs tests/reduction-cloud.test.mjs
+        run: node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs tests/reduction-cloud.test.mjs tests/theme-regression.mjs
 
   browser-e2e:
     needs: foundation
