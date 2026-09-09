@@ -38,6 +38,7 @@ jobs:
       - name: Check foundation JavaScript syntax
         run: |
           node --check app.js
+          node --check startup-state-guard.js
           node --check smoking-journey.js
           node --check smoking-journey-ui.js
           node --check reduction-cloud.js
@@ -53,6 +54,7 @@ jobs:
           node --check tests/smoking-journey.e2e.mjs
           node --check tests/reduction-cloud.e2e.mjs
           node --check tests/responsive.e2e.mjs
+          node --check tests/startup-refresh.e2e.mjs
       - name: Run foundation regression tests
         run: node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs tests/reduction-cloud.test.mjs
 
@@ -92,3 +94,4 @@ jobs:
           node tests/smoking-journey.e2e.mjs
           node tests/reduction-cloud.e2e.mjs
           node tests/responsive.e2e.mjs
+          node tests/startup-refresh.e2e.mjs
