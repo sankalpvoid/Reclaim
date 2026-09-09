@@ -91,7 +91,16 @@ async function bootstrap(){
   const failures=names.filter((name,index)=>settled[index].status==='rejected');
   next.cloudRestore={at:new Date().toISOString(),partial:failures.length>0,failed:failures};
   writeJson(STATE_KEY,next);
-  window.__reclaimCloudBootstrap={userId:user.id,partial:failures.length>0,failed:failures};
+  window.__reclaimCloudBootstrap={
+    userId:user.id,
+    partial:failures.length>0,
+    failed:failures,
+    reduction:{
+      historyCount:next.reductionPlan?.history?.length||0,
+      reviewsDirty:Boolean(next.reductionSync?.reviewsDirty),
+      pendingReviewCount:next.reductionSync?.pendingReviews?.length||0
+    }
+  };
   window.dispatchEvent(new CustomEvent('reclaim:cloud-bootstrap',{detail:window.__reclaimCloudBootstrap}));
 }
 await bootstrap();
