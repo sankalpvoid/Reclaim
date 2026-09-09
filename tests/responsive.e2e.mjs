@@ -143,10 +143,26 @@ try {
     await quit.page.locator('[data-view=more]').click();
     await assertNoHorizontalOverflow(quit.page, `${viewport.label} More`);
     await quit.page.locator('[data-edit-profile]').click();
-    await quit.page.locator('[data-open-quit-picker]').click();
+    const quitPickerTrigger = quit.page.locator('[data-open-quit-picker]');
+    await quitPickerTrigger.click();
     await quit.page.locator('.reclaim-time-card').waitFor();
     await assertNoHorizontalOverflow(quit.page, `${viewport.label} Quit date/time sheet`);
+    assert.equal(
+      await quit.page.locator('.reclaim-time-close').evaluate(element => element === document.activeElement),
+      true,
+      `${viewport.label} quit-time dialog should move focus to its close control`
+    );
 
+    await quit.page.keyboard.press('Escape');
+    await quit.page.locator('.reclaim-time-modal').waitFor({ state: 'detached' });
+    assert.equal(
+      await quitPickerTrigger.evaluate(element => element === document.activeElement),
+      true,
+      `${viewport.label} quit-time dialog should restore focus after Escape`
+    );
+
+    await quitPickerTrigger.click();
+    await quit.page.locator('.reclaim-time-card').waitFor();
     await quit.page.locator('[data-date-trigger]').click();
     await assertNoHorizontalOverflow(quit.page, `${viewport.label} Calendar`);
     await quit.page.locator('[data-cal-year-trigger]').click();
@@ -157,7 +173,7 @@ try {
     await quit.context.close();
   }
 
-  console.log(`PASS: responsive overflow and page-error checks across ${viewports.length} viewport sizes.`);
+  console.log(`PASS: responsive overflow, keyboard dialog, and page-error checks across ${viewports.length} viewport sizes.`);
 } finally {
   await browser.close();
 }
