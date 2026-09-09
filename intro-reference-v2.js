@@ -88,6 +88,9 @@
     const section=document.querySelector('.intro-reference');
     if(!section||section.dataset.introExact==='1')return;
 
+    // Keep the original app-rendered button node so app.js's bound click
+    // handler survives the visual replacement. Recreating the button with
+    // innerHTML was why Begin journey looked tappable but did nothing.
     const oldButton=section.querySelector('.intro-reference-cta[data-stage]');
     const requested=oldButton?.dataset.stage||'auth';
     const nextStage=VALID_STAGES.has(requested)?requested:'auth';
@@ -96,10 +99,23 @@
     section.classList.remove('intro-v2');
     section.classList.add('intro-exact');
     section.setAttribute('aria-label','Reclaim. Make space for you. Namaste. Room to grow. A little change. A little more you.');
-    section.innerHTML=`
-      <img class="intro-exact-image" src="assets/begin-journey-reference.png" alt="" aria-hidden="true" decoding="async" fetchpriority="high">
-      <button class="intro-reference-cta" data-stage="${nextStage}" aria-label="Begin journey"><span>Begin journey</span></button>
-    `;
+
+    section.replaceChildren();
+    const image=document.createElement('img');
+    image.className='intro-exact-image';
+    image.src='assets/begin-journey-reference.png';
+    image.alt='';
+    image.setAttribute('aria-hidden','true');
+    image.decoding='async';
+    image.fetchPriority='high';
+    section.appendChild(image);
+
+    const button=oldButton||document.createElement('button');
+    button.className='intro-reference-cta';
+    button.dataset.stage=nextStage;
+    button.setAttribute('aria-label','Begin journey');
+    button.innerHTML='<span>Begin journey</span>';
+    section.appendChild(button);
   }
 
   const observer=new MutationObserver(mount);
