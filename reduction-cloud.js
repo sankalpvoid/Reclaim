@@ -79,12 +79,14 @@ export function clearDayConfirmation(state, day) {
   const key = safeDate(day);
   if (!key) return false;
   const sync = syncFor(state);
-  const hadConfirmation = Object.prototype.hasOwnProperty.call(state.dayConfirmations || {}, key)
-    || sync.confirmations[key]?.kind === 'upsert';
+  const hadLocal = Object.prototype.hasOwnProperty.call(state.dayConfirmations || {}, key);
+  const pending = sync.confirmations[key];
+  if (!hadLocal && !pending) return false;
   state.dayConfirmations = { ...(state.dayConfirmations || {}) };
   delete state.dayConfirmations[key];
-  if (hadConfirmation) sync.confirmations[key] = { kind: 'delete' };
-  return hadConfirmation;
+  if (hadLocal || pending?.kind === 'upsert') sync.confirmations[key] = { kind: 'delete' };
+  else delete sync.confirmations[key];
+  return true;
 }
 
 export function planToRow(plan, userId) {
