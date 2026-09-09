@@ -29,8 +29,30 @@ function safeTargetHistory(value = []) {
     .filter(Boolean);
 }
 
+function safeReviewHistory(value = []) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(review => {
+      const reviewedOn = safeDate(review?.reviewedOn);
+      const from = safeDate(review?.from);
+      if (!reviewedOn || !from || !REVIEW_STATUSES.has(review?.status)) return null;
+      return {
+        reviewedOn,
+        from,
+        target: int(review.target, 1, 1, 1000),
+        nextTarget: int(review.nextTarget, 1, 1, 1000),
+        status: review.status,
+        loggedDays: int(review.loggedDays, 0, 0, 7),
+        average: review.average == null ? null : finite(review.average, null),
+        choice: REVIEW_CHOICES.has(review.choice) ? review.choice : 'continue'
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.reviewedOn.localeCompare(b.reviewedOn) || a.from.localeCompare(b.from));
+}
+
 export function emptyReductionSync() {
-  return { planDirty: false, reviewsDirty: false, confirmations: {} };
+  return { planDirty: false, reviewsDirty: false, pendingReviews: [], confirmations: {} };
 }
 
 export function normalizeReductionSync(value = {}) {
@@ -49,6 +71,7 @@ export function normalizeReductionSync(value = {}) {
   return {
     planDirty: Boolean(value?.planDirty),
     reviewsDirty: Boolean(value?.reviewsDirty),
+    pendingReviews: safeReviewHistory(value?.pendingReviews),
     confirmations
   };
 }
@@ -61,7 +84,11 @@ function syncFor(state) {
 export function markReductionPlanDirty(state, { reviews = false } = {}) {
   const sync = syncFor(state);
   sync.planDirty = true;
-  if (reviews) sync.reviewsDirty = true;
+  if (reviews) {
+    sync.reviewsDirty = true;
+    const history = safeReviewHistory(state?.reductionPlan?.history);
+    if (history.length) sync.pendingReviews = history;
+  }
   return sync;
 }
 
@@ -164,6 +191,52 @@ export function planFromRow(row, reviewRows = []) {
     targetChanged: Boolean(row.target_changed),
     history
   };
+}
+
+export function mergeCloudReductionPlan(state, cloudRow, cloudReviewRows = [], { reviewsUnavailable = false } = {}) {
+  const sync = syncFor(state);
+  const localPlan = state?.reductionPlan || null;
+  if (!cloudRow) {
+    if (!localPlan) return null;
+    sync.planDirty = true;
+    if (localPlan.history?.length) {
+      sync.reviewsDirty = true;
+      if (!sync.pendingReviews.length) sync.pendingReviews = safeReviewHistory(localPlan.history);
+    }
+    return localPlan;
+  }
+
+  // A fully pending local plan is newer than the last cloud snapshot.
+  if (sync.planDirty && localPlan) return localPlan;
+
+  const restored = planFromRow(cloudRow, cloudReviewRows);
+  if (!restored) return localPlan;
+
+  // Review history has its own durable pending snapshot. This keeps a review
+  // recoverable if the plan upsert succeeds but the review-history upsert fails.
+  if (sync.reviewsDirty) {
+    const pending = sync.pendingReviews.length ? sync.pendingReviews : safeReviewHistory(localPlan?.history);
+    if (pending.length) {
+      restored.history = pending;
+      sync.pendingReviews = pending;
+    }
+  } else if (reviewsUnavailable && localPlan?.history?.length) {
+    restored.history = safeReviewHistory(localPlan.history);
+  }
+  return restored;
+}
+
+export function pendingReviewHistory(state) {
+  const sync = syncFor(state);
+  if (sync.pendingReviews.length) return sync.pendingReviews;
+  return safeReviewHistory(state?.reductionPlan?.history);
+}
+
+export function clearPendingReviewHistory(state) {
+  const sync = syncFor(state);
+  sync.reviewsDirty = false;
+  sync.pendingReviews = [];
+  return sync;
 }
 
 export function confirmationMap(rows = []) {
