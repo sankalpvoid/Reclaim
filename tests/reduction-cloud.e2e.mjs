@@ -107,6 +107,8 @@ async function openDevice({seedReduction=true}={}){
   const page=await context.newPage();
   page.on('pageerror',error=>pageErrors.push(error.message));
   await context.addInitScript(({STATE_KEY,SESSION_KEY,user,baseProfile,seedReduction,plan,confirmations,logs})=>{
+    if(localStorage.getItem('reduction-cloud-test-seeded'))return;
+    localStorage.setItem('reduction-cloud-test-seeded','yes');
     localStorage.setItem(SESSION_KEY,JSON.stringify({access_token:'test-token',user}));
     localStorage.setItem('reclaim-lifecycle-v1',JSON.stringify({userId:user.id,lastActiveAt:Date.now()}));
     const state={stage:'app',view:'home',profile:{...baseProfile},cloudOwnerId:user.id};
