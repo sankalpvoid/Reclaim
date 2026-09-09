@@ -3,18 +3,11 @@ name: Foundation checks
 on:
   pull_request:
     paths:
-      - 'app.js'
-      - 'auth-lifecycle.js'
-      - 'welcome-back.js'
-      - 'checkin-sync.js'
-      - 'manual-checkin.js'
-      - 'cloud-bootstrap.js'
-      - 'behavior-model.js'
-      - 'behavior-events.js'
+      - '**/*.js'
+      - '**/*.mjs'
+      - '**/*.css'
       - 'index.html'
-      - 'tests/foundation-regression.mjs'
-      - 'smoking-journey*'
-      - 'tests/smoking-journey*'
+      - 'tests/**'
       - '.github/workflows/lifecycle-syntax.yml'
   push:
     branches:
@@ -27,18 +20,11 @@ on:
       - fix/behavior-event-model
       - chore/foundation-final-cleanup
     paths:
-      - 'app.js'
-      - 'auth-lifecycle.js'
-      - 'welcome-back.js'
-      - 'checkin-sync.js'
-      - 'manual-checkin.js'
-      - 'cloud-bootstrap.js'
-      - 'behavior-model.js'
-      - 'behavior-events.js'
+      - '**/*.js'
+      - '**/*.mjs'
+      - '**/*.css'
       - 'index.html'
-      - 'tests/foundation-regression.mjs'
-      - 'smoking-journey*'
-      - 'tests/smoking-journey*'
+      - 'tests/**'
       - '.github/workflows/lifecycle-syntax.yml'
 
 jobs:
@@ -62,5 +48,41 @@ jobs:
           node --check behavior-model.js
           node --check behavior-events.js
           node --check tests/foundation-regression.mjs
+          node --check tests/smoking-journey.e2e.mjs
       - name: Run foundation regression tests
         run: node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs
+
+  browser-e2e:
+    needs: foundation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright for CI only
+        run: |
+          mkdir -p /tmp/reclaim-playwright
+          cd /tmp/reclaim-playwright
+          npm init -y >/dev/null 2>&1
+          npm install --no-audit --no-fund playwright@1.63.0
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Start Reclaim locally
+        run: |
+          python3 -m http.server 4173 >/tmp/reclaim-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/reclaim-http.log
+          exit 1
+      - name: Run smoking journey browser suite
+        env:
+          PLAYWRIGHT_PATH: /tmp/reclaim-playwright/node_modules/playwright
+        run: |
+          CHROME_PATH="$(node -e "const { chromium } = require('/tmp/reclaim-playwright/node_modules/playwright'); process.stdout.write(chromium.executablePath())")"
+          export CHROME_PATH
+          node tests/smoking-journey.e2e.mjs
