@@ -78,11 +78,13 @@ export function setDayConfirmation(state, day, status, recordedCount = 0) {
 export function clearDayConfirmation(state, day) {
   const key = safeDate(day);
   if (!key) return false;
+  const sync = syncFor(state);
+  const hadConfirmation = Object.prototype.hasOwnProperty.call(state.dayConfirmations || {}, key)
+    || sync.confirmations[key]?.kind === 'upsert';
   state.dayConfirmations = { ...(state.dayConfirmations || {}) };
   delete state.dayConfirmations[key];
-  const sync = syncFor(state);
-  sync.confirmations[key] = { kind: 'delete' };
-  return true;
+  if (hadConfirmation) sync.confirmations[key] = { kind: 'delete' };
+  return hadConfirmation;
 }
 
 export function planToRow(plan, userId) {
