@@ -30,4 +30,5 @@
   const observer=new MutationObserver(ensure);
   observer.observe(document.documentElement,{childList:true,subtree:true});
   ensure();
+  import('./intro-reference-v2.js?v=1').catch(error=>console.warn('Intro refresh:',error.message));
 })();
