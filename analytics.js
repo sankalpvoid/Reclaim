@@ -19,22 +19,27 @@ const EVENT_NAMES = new Set([
   'insight_period_changed', 'momentum_tab_viewed',
   'dream_goal_started', 'dream_goal_created', 'dream_goal_delete_started',
   'community_story_shared', 'community_reply_shared', 'setback_logged',
-  'session_summary', 'for_you_opened', 'for_you_action'
+  'session_summary', 'for_you_opened', 'for_you_action', 'client_error'
 ]);
 const SAFE_PROPERTY_KEYS = new Set([
   'tool', 'feedback', 'resisted', 'engagement', 'trigger_category', 'source',
   'screen', 'outcome', 'auth_action', 'period', 'tab', 'entry_stage',
-  'duration_seconds', 'screens_seen', 'meaningful_actions', 'action'
+  'duration_seconds', 'screens_seen', 'meaningful_actions', 'action',
+  'error_kind', 'error_name', 'error_source', 'error_fingerprint'
 ]);
 const VALID_MODES = new Set(['quit', 'reduce', 'track']);
 const VALID_TOOLS = new Set(['breathe', 'timer', 'water', 'walk']);
 const VALID_FEEDBACK = new Set(['yes', 'a_little', 'not_really', 'skipped']);
+const VALID_ERROR_KINDS = new Set(['window_error', 'unhandled_rejection']);
 const VALID_SCREENS = new Set([
   'intro', 'auth', 'setup', 'mood', 'support', 'home', 'health',
   'momentum', 'dreams', 'more', 'insights', 'circles', 'craving'
 ]);
 const NUMERIC_PROPERTY_KEYS = new Set([
   'duration_seconds', 'screens_seen', 'meaningful_actions'
+]);
+const ERROR_PROPERTY_KEYS = new Set([
+  'error_name', 'error_source', 'error_fingerprint'
 ]);
 const debug = new URLSearchParams(location.search).has('analytics-debug');
 const disabled = new URLSearchParams(location.search).has('analytics-disabled');
@@ -83,6 +88,11 @@ function safeProperties(properties = {}) {
     if (key === 'feedback' && !VALID_FEEDBACK.has(value)) continue;
     if (key === 'resisted' && typeof value !== 'boolean') continue;
     if (key === 'screen' && !VALID_SCREENS.has(value)) continue;
+    if (key === 'error_kind' && !VALID_ERROR_KINDS.has(value)) continue;
+    if (ERROR_PROPERTY_KEYS.has(key)) {
+      if (typeof value === 'string' && /^[A-Za-z0-9._:-]{1,48}$/.test(value)) result[key] = value;
+      continue;
+    }
     if (NUMERIC_PROPERTY_KEYS.has(key) && Number.isInteger(value) && value >= 0) {
       result[key] = Math.min(value, 86400);
       continue;
@@ -121,6 +131,63 @@ function track(eventName, properties = {}, modeOverride = null) {
     body: JSON.stringify(payload)
   }).catch(() => {});
 }
+
+function safeErrorName(value) {
+  const cleaned = String(value || 'Error').replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 48);
+  return cleaned || 'Error';
+}
+
+function safeErrorSource(value) {
+  if (typeof value === 'string' && /^[A-Za-z0-9._-]{1,48}$/.test(value)) return value;
+  try {
+    const url = new URL(value || location.href, location.href);
+    if (url.origin !== location.origin) return 'external';
+    const filename = url.pathname.split('/').filter(Boolean).pop() || 'document';
+    return /^[A-Za-z0-9._-]{1,48}$/.test(filename) ? filename : 'app';
+  } catch {
+    return 'unknown';
+  }
+}
+
+async function errorFingerprint(value) {
+  try {
+    const input = new TextEncoder().encode(String(value).slice(0, 4096));
+    const digest = await crypto.subtle.digest('SHA-256', input);
+    return [...new Uint8Array(digest)].slice(0, 8).map(byte => byte.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return 'unavailable';
+  }
+}
+
+const reportedClientErrors = new Set();
+async function reportClientError(kind, reason, source = '') {
+  if (!VALID_ERROR_KINDS.has(kind) || reportedClientErrors.size >= 8) return;
+  const error = reason instanceof Error ? reason : null;
+  const name = safeErrorName(error?.name || reason?.name || 'Error');
+  const message = error?.message || (typeof reason === 'string' ? reason : '');
+  const stack = typeof error?.stack === 'string' ? error.stack.split('\n').slice(0, 3).join('|') : '';
+  const errorSource = safeErrorSource(source);
+  const fingerprint = await errorFingerprint(`${kind}|${name}|${message}|${stack}|${errorSource}`);
+  if (reportedClientErrors.has(fingerprint)) return;
+  reportedClientErrors.add(fingerprint);
+  const state = currentState();
+  const screen = state.stage === 'app' ? state.view || 'home' : state.stage || 'intro';
+  track('client_error', {
+    error_kind: kind,
+    error_name: name,
+    error_source: errorSource,
+    error_fingerprint: fingerprint,
+    screen
+  });
+}
+
+window.addEventListener('error', event => {
+  void reportClientError('window_error', event.error || event.message, event.filename || 'document');
+});
+
+window.addEventListener('unhandledrejection', event => {
+  void reportClientError('unhandled_rejection', event.reason, 'promise');
+});
 
 track('session_started');
 if (previousSessionId && previousSessionId !== browserSessionId) track('returning_session');
