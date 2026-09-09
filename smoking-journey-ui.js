@@ -81,20 +81,21 @@ export function createSmokingJourney(ctx) {
     syncingReduction=true;
     const owner=ctx.getSession().user.id,current=state();
     current.reductionSync=normalizeReductionSync(current.reductionSync);
+    let changed=false;
     try {
       if(current.reductionSync.planDirty&&current.reductionPlan){
         const row=planToRow(current.reductionPlan,owner);
         if(row){
           await ctx.api('/rest/v1/reduction_plans?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
           if(ctx.getSession()?.user?.id!==owner||state()!==current)return;
-          current.reductionSync.planDirty=false;save();
+          current.reductionSync.planDirty=false;changed=true;save();
         }
       }
       if(current.reductionSync.reviewsDirty){
         const rows=(current.reductionPlan?.history||[]).map(review=>reviewToRow(review,owner)).filter(Boolean);
         if(rows.length)await ctx.api('/rest/v1/reduction_reviews?on_conflict=user_id,reviewed_on,review_start',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(rows)});
         if(ctx.getSession()?.user?.id!==owner||state()!==current)return;
-        current.reductionSync.reviewsDirty=false;save();
+        current.reductionSync.reviewsDirty=false;changed=true;save();
       }
       for(const [day,job] of Object.entries(current.reductionSync.confirmations||{})){
         if(ctx.getSession()?.user?.id!==owner||state()!==current)break;
@@ -106,11 +107,11 @@ export function createSmokingJourney(ctx) {
             await ctx.api('/rest/v1/daily_smoking_confirmations?on_conflict=user_id,day',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
           }
           if(ctx.getSession()?.user?.id!==owner||state()!==current)break;
-          if(current.reductionSync.confirmations[day]===job)delete current.reductionSync.confirmations[day];
+          if(current.reductionSync.confirmations[day]===job){delete current.reductionSync.confirmations[day];changed=true;}
           save();
         }catch{break;}
       }
-    }catch{}finally{syncingReduction=false;if(state()===current&&ctx.getSession()?.user?.id===owner&&mode()!=='quit'&&state().stage==='app')ctx.render();}
+    }catch{}finally{syncingReduction=false;if(changed&&state()===current&&ctx.getSession()?.user?.id===owner&&mode()!=='quit'&&state().stage==='app')ctx.render();}
   }
   function syncAll(){void sync();void syncReduction();}
   function queue(id,kind,event){
