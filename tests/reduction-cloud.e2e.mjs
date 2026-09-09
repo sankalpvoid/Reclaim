@@ -132,7 +132,6 @@ async function waitReductionClean(page){
 }
 
 try{
-  // DEVICE A: migrate an existing local Reduce plan and completed days into the cloud.
   const a=await openDevice({seedReduction:true});
   for(let attempt=0;attempt<100&&!cloud.plan;attempt++)await new Promise(resolve=>setTimeout(resolve,25));
   for(let attempt=0;attempt<100&&cloud.confirmations.size<7;attempt++)await new Promise(resolve=>setTimeout(resolve,25));
@@ -140,7 +139,6 @@ try{
   assert.equal(cloud.confirmations.size,7,'Device A should migrate its seven existing completed days');
   await waitReductionClean(a.page);
 
-  // Simulate a partial outage: the plan snapshot succeeds but review-history writes fail.
   failReviews=true;
   await a.page.locator('[data-smoking-review]').first().click();
   await a.page.locator('[data-smoking-apply]').first().click();
@@ -150,12 +148,16 @@ try{
   assert.equal(state.reductionPlan.history.length,1);
   assert.equal(state.reductionSync.planDirty,false,'plan snapshot should have synced before the review-history failure');
   assert.equal(state.reductionSync.reviewsDirty,true,'failed review history must remain pending');
+  assert.equal(state.reductionSync.pendingReviews?.length,1,'failed review must have an independent pending snapshot');
   assert.equal(cloud.plan.current_target,16);
   assert.equal(cloud.reviews.length,0);
 
-  // Reload while the review endpoint is still unavailable. Local review history must survive cloud hydration.
   await a.page.reload();
   await waitForCloudBootstrap(a.page);
+  const boot=await a.page.evaluate(()=>window.__reclaimCloudBootstrap?.reduction||null);
+  assert.equal(boot?.historyCount,1,`cloud bootstrap must restore pending history; bootstrap=${JSON.stringify(boot)}`);
+  assert.equal(boot?.reviewsDirty,true,`review must remain dirty during failed endpoint; bootstrap=${JSON.stringify(boot)}`);
+  assert.equal(boot?.pendingReviewCount,1,`pending review snapshot must survive hydration; bootstrap=${JSON.stringify(boot)}`);
   state=await localState(a.page);
   assert.equal(state.reductionPlan.history.length,1,'pending review history must survive reload');
   assert.equal(state.reductionPlan.currentTarget,16);
@@ -167,7 +169,6 @@ try{
   await waitReductionClean(a.page);
   assert.equal(cloud.reviews.length,1,'pending review history should sync after reconnect');
 
-  // Confirm a day while confirmation writes are offline, reload, then reconnect.
   failConfirmationWrites=true;
   await a.page.locator(`[data-smoking-day="${day()}"]`).first().click();
   await a.page.locator('[data-smoking-complete]').click();
@@ -187,7 +188,6 @@ try{
   await waitReductionClean(a.page);
   assert.equal(cloud.confirmations.get(day()).status,'smoke_free');
 
-  // A smoking change after confirmation must invalidate that completed-day assertion in cloud and locally.
   await a.page.locator('[data-log-cigarette]').click();
   for(let attempt=0;attempt<100&&cloud.confirmations.has(day());attempt++)await new Promise(resolve=>setTimeout(resolve,25));
   state=await localState(a.page);
@@ -195,7 +195,6 @@ try{
   assert.equal(cloud.confirmations.has(day()),false,'adding a cigarette after confirmation should delete the cloud confirmation');
   await a.context.close();
 
-  // DEVICE B: clean app data, same authenticated account. All canonical Reduce history must restore from cloud.
   const b=await openDevice({seedReduction:false});
   await b.page.waitForFunction(key=>{
     const state=JSON.parse(localStorage.getItem(key)||'{}');
