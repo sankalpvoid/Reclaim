@@ -78,7 +78,8 @@ async function bootstrap(){
     const cloudReviewRows=result.reductionReviews.status==='fulfilled'?(result.reductionReviews.value||[]):[];
     if(cloudRow && !(sameOwner&&localReductionSync.planDirty&&state.reductionPlan)){
       next.reductionPlan=planFromRow(cloudRow,cloudReviewRows);
-      if(result.reductionReviews.status!=='fulfilled'&&sameOwner&&state.reductionPlan?.history?.length)next.reductionPlan.history=state.reductionPlan.history;
+      if(sameOwner&&localReductionSync.reviewsDirty&&state.reductionPlan?.history?.length)next.reductionPlan.history=state.reductionPlan.history;
+      else if(result.reductionReviews.status!=='fulfilled'&&sameOwner&&state.reductionPlan?.history?.length)next.reductionPlan.history=state.reductionPlan.history;
     }else if(!cloudRow&&sameOwner&&state.reductionPlan){
       next.reductionPlan=state.reductionPlan;
       markReductionPlanDirty(next,{reviews:Boolean(state.reductionPlan.history?.length)});
