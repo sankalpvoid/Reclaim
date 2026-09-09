@@ -524,3 +524,7 @@ html[data-theme="light"] .reclaim-country-check{color:#7656c5}
 @media(prefers-reduced-motion:reduce){
   .reclaim-country-sheet,.reclaim-country-backdrop,.reclaim-country-trigger,.reclaim-country-chevron,.reclaim-country-option{transition:none!important}
 }
+
+
+/* A closed country sheet must not remain in the page after leaving setup. */
+.reclaim-country-sheet[hidden], .reclaim-country-backdrop[hidden]{display:none!important}

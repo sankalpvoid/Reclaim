@@ -67,3 +67,29 @@ These values are estimates and deliberately labeled that way. Recovery milestone
 
 Deployment managed through GitHub and Vercel.
 Development preview branch enabled.
+
+
+## Reduce and Track Smoking
+
+`smoking-journey.js` adapts the existing pure reduction engine to calendar days, confirmed totals, dated reviews, historical targets and recent-log insights. `smoking-journey-ui.js` owns the two journey screens, log editor, full-day confirmation and review controls. Quit keeps its existing views and date picker.
+
+- Reduce initializes from at least four confirmed days in the previous seven days, otherwise the onboarding estimate. The initial target and later stable reviews use the engine's 10%/minimum-one rule.
+- Reviews open after seven calendar days and use at least four complete past days. Today's partial count and untracked days cannot count as successes. Stable weeks advance; mixed/struggling weeks hold; repeated struggling offers an explicit, optional +1 adjustment. Reviews cannot repeat on the same day or move below 1/day.
+- Returning to Reduce starts a fresh review window and preserves the baseline and prior reviews. Days spent in another journey have no reduction target.
+- Track supports the same logging, editing, deletion and completion controls without a reduction target. Patterns show their sample requirements and distinguish recorded totals from complete-day averages.
+- New smoking mutations use stable UUIDs and an idempotent queue against the existing `smoking_events` table. Pending edits/deletions overlay cloud hydration and survive offline reloads. Account changes clear the prior user's plan, confirmations and pending mutations. Existing device-only logs are preserved.
+- Plan history and day confirmations are device-local. The current target uses the existing profile field, but the full plan and confirmations do not restore on a new device. The UI labels this limitation. No database schema migration is required for the configured project; clean installs must grant authenticated users SELECT, INSERT, UPDATE and DELETE on smoking_events with user-owned RLS.
+
+### Verification
+
+```sh
+node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs
+```
+
+Browser suite (requires Playwright and Chrome, with the app served on port 4173):
+
+```sh
+PLAYWRIGHT_PATH=/path/to/node_modules/playwright CHROME_PATH=/path/to/chrome node tests/smoking-journey.e2e.mjs
+```
+
+The browser suite uses simulated authenticated API responses and isolated browser storage. It exercises real UI code for logging, correction/deletion, offline retry, reload, confirmations, reviews, initial setup, account isolation, For You, Track and Quit navigation/date-picker controls. It does not write to a real Supabase account. Live database checks separately verified the existing smoking_events privileges and user-owned RLS.

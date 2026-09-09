@@ -59,7 +59,10 @@ export function normalizeBehaviorEvents(source=[],fallbackState=null){
     if(!event)continue;
     const localKey=event.type==='smoked'?`local:smoked:${event.at}:${event.cigarettes}`:`local:craving:${event.at}`;
     let index=event.cloudId?byCloud.get(String(event.cloudId)):undefined;
-    if(index==null)index=byLocal.get(localKey);
+    if(index==null){
+      const candidate=byLocal.get(localKey);
+      if(candidate!=null && !(event.cloudId && events[candidate].cloudId && event.cloudId!==events[candidate].cloudId))index=candidate;
+    }
     if(index==null){
       index=events.length;
       events.push(event);
@@ -111,3 +114,4 @@ export function fromDatabaseRows(rows=[]){
     cloudId:row.id
   })));
 }
+

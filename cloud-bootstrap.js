@@ -1,3 +1,4 @@
+import { overlaySmokingMutations } from './smoking-journey.js';
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 import { fromDatabaseRows, normalizeBehaviorEvents, deriveSmokingEvents, deriveCravings } from './behavior-model.js';
 import './behavior-events.js';
@@ -35,7 +36,7 @@ async function bootstrap(){
   session={...session,user};writeJson(SESSION_KEY,session);
   const state=readJson(STATE_KEY,{})||{};
   const sameOwner=!state.cloudOwnerId||state.cloudOwnerId===user.id;
-  const localBehavior=sameOwner?normalizeBehaviorEvents((state.behaviorEvents||[]).filter(item=>!item.cloudId),state):[];
+  const localBehavior=sameOwner?normalizeBehaviorEvents(state.behaviorEvents||[],state).filter(item=>!item.cloudId):[];
   const localCheckins=sameOwner?(state.checkins||[]):[];
   const jobs={
     profile:request(`/rest/v1/profiles?id=eq.${user.id}&select=*`),
@@ -45,7 +46,7 @@ async function bootstrap(){
     checkins:request(`/rest/v1/daily_checkins?user_id=eq.${user.id}&select=client_id,mood,note,created_at&order=created_at.asc`)
   };
   const names=Object.keys(jobs),settled=await Promise.allSettled(Object.values(jobs)),result=Object.fromEntries(names.map((name,index)=>[name,settled[index]]));
-  const next=sameOwner?{...state,cloudOwnerId:user.id}:{...state,cloudOwnerId:user.id,profile:blankProfile(),remoteMilestones:[],goals:[],behaviorEvents:[],cravings:[],smokingEvents:[],checkins:[]};
+  const next=sameOwner?{...state,cloudOwnerId:user.id}:{...state,cloudOwnerId:user.id,profile:blankProfile(),remoteMilestones:[],goals:[],behaviorEvents:[],cravings:[],smokingEvents:[],checkins:[],reductionPlan:null,dayConfirmations:{},smokingMutations:{}};
   if(result.profile.status==='fulfilled')next.profile=mapProfile(next.profile,result.profile.value?.[0]);
   if(result.health.status==='fulfilled')next.remoteMilestones=result.health.value||[];
   if(result.goals.status==='fulfilled')next.goals=(result.goals.value||[]).map(goal=>({id:goal.id,name:goal.name,target:+goal.target_amount}));
@@ -55,10 +56,12 @@ async function bootstrap(){
     next.smokingEvents=deriveSmokingEvents(next.behaviorEvents);
     next.cravings=deriveCravings(next.behaviorEvents);
   }else{
-    next.behaviorEvents=normalizeBehaviorEvents(state.behaviorEvents||[],state);
+    next.behaviorEvents=normalizeBehaviorEvents(sameOwner?state.behaviorEvents||[]:[],sameOwner?state:null);
     next.smokingEvents=deriveSmokingEvents(next.behaviorEvents);
     next.cravings=deriveCravings(next.behaviorEvents);
   }
+  next.smokingEvents=overlaySmokingMutations(next.smokingEvents,next.smokingMutations);
+  next.behaviorEvents=[...(next.behaviorEvents||[]).filter(e=>e.type!=='smoked'),...next.smokingEvents.map(e=>({...e,type:'smoked'}))];
   if(result.checkins.status==='fulfilled'){
     const remote=(result.checkins.value||[]).map(row=>({clientId:row.client_id,mood:row.mood,note:row.note||'',at:row.created_at}));
     const remoteIds=new Set(remote.map(item=>item.clientId).filter(Boolean)),pending=localCheckins.filter(item=>!item.clientId||!remoteIds.has(item.clientId));
@@ -71,3 +74,4 @@ async function bootstrap(){
   window.dispatchEvent(new CustomEvent('reclaim:cloud-bootstrap',{detail:window.__reclaimCloudBootstrap}));
 }
 await bootstrap();
+

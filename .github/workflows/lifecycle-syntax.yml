@@ -13,6 +13,8 @@ on:
       - 'behavior-events.js'
       - 'index.html'
       - 'tests/foundation-regression.mjs'
+      - 'smoking-journey*'
+      - 'tests/smoking-journey*'
       - '.github/workflows/lifecycle-syntax.yml'
   push:
     branches:
@@ -34,6 +36,8 @@ on:
       - 'behavior-events.js'
       - 'index.html'
       - 'tests/foundation-regression.mjs'
+      - 'smoking-journey*'
+      - 'tests/smoking-journey*'
       - '.github/workflows/lifecycle-syntax.yml'
 
 jobs:
@@ -47,6 +51,8 @@ jobs:
       - name: Check foundation JavaScript syntax
         run: |
           node --check app.js
+          node --check smoking-journey.js
+          node --check smoking-journey-ui.js
           node --check auth-lifecycle.js
           node --check welcome-back.js
           node --check checkin-sync.js
@@ -56,4 +62,5 @@ jobs:
           node --check behavior-events.js
           node --check tests/foundation-regression.mjs
       - name: Run foundation regression tests
-        run: node --test tests/foundation-regression.mjs
+        run: node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs
+

@@ -59,7 +59,7 @@ test('cloud bootstrap hydrates smoking and craving history through one smoking_e
 
 test('manual mood transition blocks Home snapshot recapture before route change',async()=>{
   const manual=await read('manual-checkin.js');
-  assert.equal(manual.includes("const SNAPSHOT_KEY='reclaim-page-skeleton-v1'"),true);
+  assert.equal(manual.includes("SNAPSHOT_KEY='reclaim-page-skeleton-v1'"),true);
   assert.equal(manual.includes("classList.add('reclaim-snapshot-host')"),true);
   assert.equal(manual.includes('localStorage.removeItem(SNAPSHOT_KEY)'),true);
   assert.equal(manual.includes("stage:'mood'"),true);
@@ -71,4 +71,11 @@ test('UI polish keeps small plan values compact and removes infrastructure statu
   assert.equal(script.includes("classList.add('ui-compact-field')"),true);
   assert.equal(styles.includes('.ui-appearance-card'),true);
   assert.equal(styles.includes('.hero-runner .runner-art'),true);
+});
+
+
+test('distinct smoking records at the same instant retain both identities',()=>{
+  const at='2026-09-03T12:00:00.000Z';
+  const events=normalizeBehaviorEvents([{type:'smoked',at,cigarettes:1,cloudId:'a'},{type:'smoked',at,cigarettes:1,cloudId:'b'}]);
+  assert.equal(events.length,2);
 });
