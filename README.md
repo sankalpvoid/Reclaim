@@ -37,6 +37,8 @@ If the project has not already received the latest community upgrade, run `supab
 
 Use `supabase/verify_community_features.sql` as the read-only community check.
 
+After schema/community upgrades and the product analytics scripts, run `supabase/security_cleanup_v1.sql` **last**. It removes legacy duplicate owner policies, replaces them with explicit authenticated owner policies, and resets client-facing grants to the least privileges the app currently uses. Re-run this cleanup after re-running an older schema upgrade so legacy grants or policies cannot be reintroduced.
+
 ### Clean project
 
 Use this order:
@@ -44,10 +46,13 @@ Use this order:
 1. `supabase/schema.sql`
 2. `supabase/data_foundation_upgrade.sql`
 3. `supabase/upgrade_existing_schema.sql`
-4. `supabase/product_analytics.sql` and then `supabase/product_analytics_v2.sql` if product analytics is required
-5. the corresponding read-only verification scripts
+4. `supabase/product_analytics.sql`
+5. `supabase/product_analytics_v2.sql`
+6. `supabase/product_analytics_v3.sql`
+7. `supabase/security_cleanup_v1.sql`
+8. the corresponding read-only verification scripts
 
-The foundation step must come before `upgrade_existing_schema.sql` because older versions of `schema.sql` did not create `smoking_events`, while the upgrade expects that table to exist.
+The foundation step must come before `upgrade_existing_schema.sql` because older versions of `schema.sql` did not create `smoking_events`, while the upgrade expects that table to exist. The security cleanup intentionally runs last because older upgrade files contain historical grants/policies that the cleanup narrows to the current least-privilege model.
 
 ### Daily check-in durability
 
