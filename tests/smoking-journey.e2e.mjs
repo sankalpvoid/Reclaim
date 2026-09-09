@@ -55,9 +55,9 @@ try{
  await page.locator(`[data-smoking-day="${day()}"]`).first().click();await page.locator('[data-smoking-complete]').click();
  let stored=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);assert.equal(stored.dayConfirmations[day()],'complete');
  x.setOffline(true);await page.locator('[data-log-cigarette]').click();
- await page.getByText(/waiting to sync/).waitFor();
+ await page.getByText(/waiting to sync/).first().waitFor();
  await page.reload();await page.locator('.sj-screen').waitFor();assert.match(await page.locator('.tracking-intro h1').innerText(),/^4/);
- x.setOffline(false);await page.locator('[data-smoking-sync]').click();await page.waitForFunction(key=>Object.keys(JSON.parse(localStorage.getItem(key)).smokingMutations||{}).length===0,key);assert.equal(rows.size,2);
+ x.setOffline(false);await page.locator('[data-smoking-sync]').first().click();await page.waitForFunction(key=>Object.keys(JSON.parse(localStorage.getItem(key)).smokingMutations||{}).length===0,key);assert.equal(rows.size,2);
  await page.locator(`[data-smoking-day="${day()}"]`).first().click();await page.locator('[data-smoking-edit]').first().click();await page.locator('[data-smoking-remove]').click();
  await page.waitForFunction(key=>Object.keys(JSON.parse(localStorage.getItem(key)).smokingMutations||{}).length===0,key);
  await page.reload();await page.locator('.sj-screen').waitFor();assert.equal(rows.size,1);assert.match(await page.locator('.tracking-intro h1').innerText(),/^3/);
