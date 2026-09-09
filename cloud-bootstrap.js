@@ -1,4 +1,5 @@
 import { overlaySmokingMutations } from './smoking-journey.js';
+import { emptyReductionSync, normalizeReductionSync, planFromRow, mergeCloudConfirmations, markReductionPlanDirty } from './reduction-cloud.js';
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 import { fromDatabaseRows, normalizeBehaviorEvents, deriveSmokingEvents, deriveCravings } from './behavior-model.js';
 import './behavior-events.js';
@@ -38,15 +39,19 @@ async function bootstrap(){
   const sameOwner=!state.cloudOwnerId||state.cloudOwnerId===user.id;
   const localBehavior=sameOwner?normalizeBehaviorEvents(state.behaviorEvents||[],state).filter(item=>!item.cloudId):[];
   const localCheckins=sameOwner?(state.checkins||[]):[];
+  const localReductionSync=sameOwner?normalizeReductionSync(state.reductionSync):emptyReductionSync();
   const jobs={
     profile:request(`/rest/v1/profiles?id=eq.${user.id}&select=*`),
     health:request('/rest/v1/health_milestones?select=*&order=minutes_after_quitting.asc'),
     goals:request(`/rest/v1/savings_goals?user_id=eq.${user.id}&select=*`),
     behavior:request(`/rest/v1/smoking_events?user_id=eq.${user.id}&select=id,event_type,smoked_at,created_at,cigarettes,resisted,toolkit,duration_seconds,tool_feedback&order=smoked_at.asc`),
-    checkins:request(`/rest/v1/daily_checkins?user_id=eq.${user.id}&select=client_id,mood,note,created_at&order=created_at.asc`)
+    checkins:request(`/rest/v1/daily_checkins?user_id=eq.${user.id}&select=client_id,mood,note,created_at&order=created_at.asc`),
+    reductionPlan:request(`/rest/v1/reduction_plans?user_id=eq.${user.id}&select=*`),
+    reductionReviews:request(`/rest/v1/reduction_reviews?user_id=eq.${user.id}&select=*&order=reviewed_on.asc,review_start.asc`),
+    confirmations:request(`/rest/v1/daily_smoking_confirmations?user_id=eq.${user.id}&select=day,status,recorded_count,updated_at&order=day.asc`)
   };
   const names=Object.keys(jobs),settled=await Promise.allSettled(Object.values(jobs)),result=Object.fromEntries(names.map((name,index)=>[name,settled[index]]));
-  const next=sameOwner?{...state,cloudOwnerId:user.id}:{...state,cloudOwnerId:user.id,profile:blankProfile(),remoteMilestones:[],goals:[],behaviorEvents:[],cravings:[],smokingEvents:[],checkins:[],reductionPlan:null,dayConfirmations:{},smokingMutations:{}};
+  const next=sameOwner?{...state,cloudOwnerId:user.id,reductionSync:localReductionSync}:{...state,cloudOwnerId:user.id,profile:blankProfile(),remoteMilestones:[],goals:[],behaviorEvents:[],cravings:[],smokingEvents:[],checkins:[],reductionPlan:null,dayConfirmations:{},smokingMutations:{},reductionSync:emptyReductionSync()};
   if(result.profile.status==='fulfilled')next.profile=mapProfile(next.profile,result.profile.value?.[0]);
   if(result.health.status==='fulfilled')next.remoteMilestones=result.health.value||[];
   if(result.goals.status==='fulfilled')next.goals=(result.goals.value||[]).map(goal=>({id:goal.id,name:goal.name,target:+goal.target_amount}));
@@ -67,6 +72,28 @@ async function bootstrap(){
     const remoteIds=new Set(remote.map(item=>item.clientId).filter(Boolean)),pending=localCheckins.filter(item=>!item.clientId||!remoteIds.has(item.clientId));
     next.checkins=[...remote,...pending].sort((a,b)=>new Date(a.at)-new Date(b.at));
   }
+
+  if(result.reductionPlan.status==='fulfilled'){
+    const cloudRow=result.reductionPlan.value?.[0]||null;
+    const cloudReviewRows=result.reductionReviews.status==='fulfilled'?(result.reductionReviews.value||[]):[];
+    if(cloudRow && !(sameOwner&&localReductionSync.planDirty&&state.reductionPlan)){
+      next.reductionPlan=planFromRow(cloudRow,cloudReviewRows);
+      if(result.reductionReviews.status!=='fulfilled'&&sameOwner&&state.reductionPlan?.history?.length)next.reductionPlan.history=state.reductionPlan.history;
+    }else if(!cloudRow&&sameOwner&&state.reductionPlan){
+      next.reductionPlan=state.reductionPlan;
+      markReductionPlanDirty(next,{reviews:Boolean(state.reductionPlan.history?.length)});
+    }else if(!cloudRow&&!sameOwner){
+      next.reductionPlan=null;
+    }
+  }
+  if(next.reductionPlan)next.profile.dailyTarget=next.reductionPlan.currentTarget;
+
+  if(result.confirmations.status==='fulfilled'){
+    next.dayConfirmations=mergeCloudConfirmations(next,result.confirmations.value||[]);
+  }else if(!sameOwner){
+    next.dayConfirmations={};
+  }
+
   const failures=names.filter((name,index)=>settled[index].status==='rejected');
   next.cloudRestore={at:new Date().toISOString(),partial:failures.length>0,failed:failures};
   writeJson(STATE_KEY,next);
