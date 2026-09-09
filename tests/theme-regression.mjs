@@ -14,3 +14,7 @@ test('ui polish is not loaded both as a classic script and an imported module', 
   assert.match(manualCheckin, /import\s+['"]\.\/ui-polish\.js['"]/);
   assert.doesNotMatch(indexHtml, /<script[^>]+src=["']ui-polish\.js/);
 });
+
+test('unused page snapshot writer is not loaded at runtime', () => {
+  assert.doesNotMatch(indexHtml, /<script[^>]+src=["']skeleton-snapshot\.js/);
+});
