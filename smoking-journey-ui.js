@@ -1,3 +1,4 @@
+import { todayHero, todayNextStep } from './today-screen.js';
 import {dayKey,shiftDay,ensurePlan,journeySummary,commitReview,targetOn} from './smoking-journey.js';
 import {clearDayConfirmation,confirmationMutationToRow,normalizeReductionSync,planToRow,reviewToRow,setDayConfirmation} from './reduction-cloud.js';
 
@@ -32,15 +33,15 @@ export function createSmokingJourney(ctx) {
     const review=s.review;
     const pending=pendingChanges();
     const gapLabel=gap===null?'—':gap<60?gap+'m':Math.floor(gap/60)+'h '+gap%60+'m';
-    return shell(`<section class="screen tracking-home sj-screen sj-today">${top('RECLAIM')}
+    return shell(`<section class="screen tracking-home sj-screen sj-today today-screen">${top('RECLAIM')}${todayHero(appIcon)}
       <div class="tracking-intro"><div class="sj-day-heading"><span class="eyebrow">${mode()==='reduce'?'SMOKE LESS':'YOUR SMOKING'}</span><span class="tracking-date">${esc(new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date()))}</span></div><h1>${s.today.count}<small>TODAY</small></h1></div>
       ${t?`<div class="sj-target"><strong>${t.smoked} of ${t.target} cigarettes</strong><span>${t.overBy?`${t.overBy} above target`:`${t.remaining} within your target`}</span><progress max="${Math.max(t.target,t.smoked,1)}" value="${t.smoked}" aria-label="Today's smoking versus target"></progress></div>`:'<p class="sj-observe">A little more awareness, one log at a time.</p>'}
-      <div class="sj-log-block">${button(`${appIcon('add')} LOG A CIGARETTE`,'data-log-cigarette','primary sj-quick-log')}<div class="sj-actions">${button('Add earlier','data-smoking-add','sj-text-action')}${button('Review today',`data-smoking-day="${dayKey()}"`,'sj-text-action')}</div></div>
+      <div class="sj-log-block">${button(`${appIcon('add')} LOG A CIGARETTE`,'data-log-cigarette','secondary sj-quick-log')}<div class="sj-actions">${button('Add earlier','data-smoking-add','sj-text-action')}${button('Review today',`data-smoking-day="${dayKey()}"`,'sj-text-action')}</div></div>
       ${pending&&ctx.getSession()?.user?`<div class="sj-pending">${syncStatus()}</div>`:''}
       <dl class="sj-today-meta"><div><dt>Since last cigarette</dt><dd>${gapLabel}</dd></div><div><dt>Spent today</dt><dd>${money(cost)}</dd></div></dl>
       ${review?`<button class="sj-review-row" data-smoking-review><span>${appIcon('trending_down')}</span><span><strong>${review.due?'Your weekly review is ready':'Your next small step'}</strong><small>Stage ${state().reductionPlan.stage} · ${review.due?`${review.loggedDays} complete days`:`Review ${dateLabel(review.dueOn)}`}</small></span><b aria-hidden="true">›</b></button>`:''}
       <button class="sj-insight-row" data-smoking-for-you><span>${appIcon('lightbulb')}</span><span><small>FOR YOU</small><strong>${s.hardTime?`Your busiest window is ${esc(s.hardTime.label.split(' (')[0])}.`:'A little insight for your next step.'}</strong></span><b aria-hidden="true">›</b></button>
-      <details class="sj-storage-details"><summary>Storage & sync</summary>${syncStatus()}</details>
+      ${todayNextStep(appIcon)}<details class="sj-storage-details"><summary>Storage & sync</summary>${syncStatus()}</details>
     </section>`);
   }
 
