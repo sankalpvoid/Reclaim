@@ -1,0 +1,77 @@
+/* Shared visual language only; existing modules own every route and interaction. */
+.reclaim-v2{--bg:#100a1d;--text:#f8f3ff;--muted:#bfb0ce;--line:#493753;--purple:#8145ff;--purple-2:#c3a0ff;--radius:20px;--v2-card:#1c1229;--v2-soft:#261935;background:var(--bg);color:var(--text)}
+.reclaim-v2 .screen{background:var(--bg);color:var(--text);padding-top:26px}
+.reclaim-v2 .screen:not(.today-screen) h1,.reclaim-v2 .screen:not(.today-screen) h2{font-family:'DM Serif Display',Georgia,serif;font-weight:400;letter-spacing:-.7px;line-height:1.08;color:var(--text)}
+.reclaim-v2 .screen:not(.today-screen) h1{font-size:40px}
+.reclaim-v2 .screen:not(.today-screen) h2{font-size:28px}
+.reclaim-v2 .topbar{margin-bottom:24px;gap:10px}
+.reclaim-v2 .topbar .brand{font-size:23px;line-height:1.1;max-width:235px;text-align:center;color:var(--text)}
+.reclaim-v2 .icon-btn{color:var(--text)}
+.reclaim-v2 .primary{background:#8145ff;color:#fff;border-radius:999px;min-height:52px;height:auto;padding:13px 18px;box-shadow:0 7px 20px #8145ff20;font-size:13px;letter-spacing:.1px}
+.reclaim-v2 .secondary{background:transparent;color:var(--purple-2);border:1px solid #8e6daf;border-radius:999px;min-height:48px;height:auto;padding:12px 16px;font-size:13px}
+.reclaim-v2 button{cursor:pointer}
+.reclaim-v2 button:focus-visible,.reclaim-v2 input:focus-visible,.reclaim-v2 select:focus-visible,body:has(.reclaim-v2) .modal-body button:focus-visible{outline:3px solid #ffbf9e;outline-offset:3px}
+.reclaim-v2 :is(.card,.record-card,.path-card,.achievement-card,.library-hero,.feed-post){background:var(--v2-card);border-color:var(--line);box-shadow:none;border-radius:20px}
+.reclaim-v2 .card{padding:19px}
+.reclaim-v2 :is(.muted,.source,.setback-note,.path-note,.period-caption){color:var(--muted)}
+.reclaim-v2 :is(input.field,select.field,textarea.field,.field){background:var(--v2-card);border:1px solid #665073;border-radius:14px;color:var(--text);min-height:50px;padding:14px;font-size:15px}
+.reclaim-v2 label{font-size:13px;color:var(--muted);gap:9px}
+.reclaim-v2 :is(.stack,#setup-form){gap:14px}
+.reclaim-v2 .eyebrow{color:var(--purple-2);font-size:10px;letter-spacing:1.5px}
+.reclaim-v2 .v2-heading{position:relative;isolation:isolate;overflow:hidden;border-radius:22px;min-height:190px;display:flex;align-items:center;margin:12px 0 22px;padding:26px 18px;background:#100a1d}
+.reclaim-v2 .v2-heading>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:right center;z-index:-1;pointer-events:none}
+.reclaim-v2 .screen .v2-heading>h1{position:relative;font:400 41px/1.04 'DM Serif Display',Georgia,serif;letter-spacing:-1px;color:#fff;margin:0;max-width:85%;text-shadow:0 2px 12px #100a1d}
+.reclaim-v2 :is(.health-aura,.neon-haze,.circles-aura){display:none}
+.reclaim-v2 .nav{background:#140c21f5;border-top:1px solid var(--line);backdrop-filter:blur(16px)}
+.reclaim-v2 .nav button{color:var(--muted)}.reclaim-v2 .nav button.active{color:var(--purple-2)}.reclaim-v2 .nav small{font:500 10px/1.4 Inter,sans-serif;letter-spacing:.1px}
+.reclaim-v2 .nav button .app-icon{font-size:24px}
+.reclaim-v2 .fab{background:#8145ff;box-shadow:0 6px 20px #8145ff30}
+.reclaim-v2 .tabs{gap:6px;border-color:var(--line);margin-top:22px;margin-bottom:22px;padding-bottom:5px}
+.reclaim-v2 .tabs button{font-size:12px;color:var(--muted);min-height:44px;text-transform:none;letter-spacing:0}
+.reclaim-v2 .tabs button.active{color:var(--text);border-color:var(--purple-2)}
+.reclaim-v2 .auth-screen>div[style]{margin-top:24px!important}
+.reclaim-v2 .auth-toggle{background:var(--v2-card);border-radius:999px;padding:5px}
+.reclaim-v2 .auth-toggle button{border-radius:999px;min-height:42px;font-size:14px}.reclaim-v2 .auth-toggle .active{background:var(--v2-soft);color:var(--text)}
+.reclaim-v2 .auth-screen .brand,.reclaim-v2 .mood-screen>.brand{font-size:30px}
+.reclaim-v2 .auth-screen>div>.muted{font-size:14px;line-height:1.6;margin-bottom:24px}
+.reclaim-v2 .path-heading{margin-top:0}.reclaim-v2 .path-heading>p{font-size:14px;line-height:1.6}
+.reclaim-v2 .path-card{padding:20px 16px;min-height:102px;gap:12px}.reclaim-v2 .path-card.selected{border-color:#bf92ff;background:var(--v2-soft)}
+.reclaim-v2 .path-card strong{font-size:14px;letter-spacing:.1px}.reclaim-v2 .path-card small{font-size:12px;line-height:1.55;color:var(--muted)}
+.reclaim-v2 .setup-mode{background:var(--v2-card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.reclaim-v2 .setup-screen>.muted{font-size:14px;line-height:1.6}.reclaim-v2 .setup-screen form{margin-top:24px}
+.reclaim-v2 .mood-screen .mood{padding:18px;min-height:84px}.reclaim-v2 .mood strong{font-size:14px}.reclaim-v2 .mood small{font-size:12px;line-height:1.55;color:var(--muted);margin-top:5px}.reclaim-v2 .mood-icon{background:var(--v2-soft);color:var(--purple-2)}
+.reclaim-v2 .craving-support>.muted{font-size:14px;line-height:1.6}
+.reclaim-v2 .tool-card{position:relative;isolation:isolate;overflow:hidden;display:block;width:100%;text-align:left;padding:23px 18px;min-height:156px;color:#fff;border:1px solid #4d355e;background:#100a1d}
+.reclaim-v2 .v2-tool-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;opacity:.62;pointer-events:none}
+.reclaim-v2 .tool-card header{display:flex;align-items:start;gap:10px}.reclaim-v2 .tool-card header strong{font:400 27px/1.1 'DM Serif Display',Georgia,serif;max-width:75%}.reclaim-v2 .tool-card header span{font-size:11px;white-space:nowrap;color:#d8baf6}
+.reclaim-v2 .tool-card p{font-size:13px;line-height:1.55;color:#ddcdee;max-width:75%;margin-top:16px;text-shadow:0 1px 5px #100a1d}
+.reclaim-v2 .tool-recommendation{color:#f6c8a9;font-size:9px;letter-spacing:1px;margin-bottom:10px}.reclaim-v2 .tool-card.recommended{border-color:#b487e8}
+.reclaim-v2 .live-recovery{background:var(--v2-card);border-color:var(--line)}.reclaim-v2 .visual-timeline .milestone{padding-bottom:24px}.reclaim-v2 .visual-timeline h3{font-size:16px;font-weight:500}.reclaim-v2 .visual-timeline p{font-size:13px;line-height:1.6;color:var(--muted)}.reclaim-v2 .visual-timeline .dot{border-color:#805fa3;background:var(--v2-soft)}
+.reclaim-v2 .momentum-intro{margin:0}.reclaim-v2 .record-card{padding:17px}.reclaim-v2 .record-card strong{font-size:25px}.reclaim-v2 .attempt-story,.reclaim-v2 .record-chase{background:var(--v2-card);border-color:var(--line);border-radius:20px}
+.reclaim-v2 .achievement-summary h1{font-family:Inter,sans-serif!important;font-size:38px!important}
+.reclaim-v2 .sj-stat strong{font-weight:500;font-size:26px}.reclaim-v2 .sj-stat small{color:var(--purple-2)}.reclaim-v2 .sj-stat span{color:var(--muted)}.reclaim-v2 .sj-note{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:16px 2px}.reclaim-v2 .sj-note p{font-size:13px}.reclaim-v2 .sj-plan{background:var(--v2-card)}
+.reclaim-v2 .sj-bars button{color:var(--text)}.reclaim-v2 .tracking-insights .v2-heading{width:100%;margin:0 0 8px}
+.reclaim-v2 .meaningful-chart{margin-top:20px}.reclaim-v2 .chart-value{color:var(--purple-2)}
+.reclaim-v2 .dream-status{background:var(--v2-card);border-color:var(--line);border-radius:20px}.reclaim-v2 .goal-card{padding:23px}.reclaim-v2 .goal-card h2{font-size:29px}.reclaim-v2 .goal-meta{font-size:13px}.reclaim-v2 .goal-eta{color:var(--muted)}
+.reclaim-v2 .circles-intro{display:block}.reclaim-v2 .circles-intro .v2-heading{margin-bottom:12px}.reclaim-v2 .circle-mark{margin:0 0 14px auto;color:var(--purple-2);border-color:var(--line)}.reclaim-v2 .circles-copy{font-size:14px;line-height:1.6;color:var(--muted)}.reclaim-v2 .community-view-tabs button,.reclaim-v2 .community-filter button,.reclaim-v2 .stage-selector button{background:var(--v2-card);border-color:var(--line);color:var(--muted);min-height:44px}.reclaim-v2 .community-view-tabs .active,.reclaim-v2 .community-filter .active,.reclaim-v2 .stage-selector .active{background:var(--v2-soft);color:var(--text);border-color:#9971c7}
+.reclaim-v2 .feed-post p{font-size:14px;line-height:1.65}.reclaim-v2 .feed-post .post-meta{color:var(--muted)}
+.reclaim-v2 .more-screen .appearance-card{padding:18px}.reclaim-v2 .more-screen .theme-toggle{background:var(--v2-soft)}.reclaim-v2 .more-screen .source{font-size:11px;line-height:1.65}
+.reclaim-v2 .struggling-support{background:var(--bg)}.reclaim-v2 .struggling-support::before{display:none}.reclaim-v2 .struggling-support>div[style]{margin-top:12px!important}
+body:has(.reclaim-v2) .modal-body{background:#1c1229;color:#f8f3ff;border-color:#644b76;border-radius:26px 26px 0 0}
+body:has(.reclaim-v2) .modal-body h2{font:400 30px/1.12 'DM Serif Display',Georgia,serif;letter-spacing:-.5px}
+body:has(.reclaim-v2) .modal-body .primary{background:#8145ff;color:#fff;border-radius:999px}
+body:has(.reclaim-v2) .modal-body .secondary{background:transparent;border-color:#9570b7;color:#d0b0ff;border-radius:999px}
+body:has(.reclaim-v2) .modal-body .field{background:#281a37;border-color:#725684;color:#fff}
+body:has(.reclaim-v2) .modal-body .muted{color:#c3b0d3}
+html[data-theme=light] .reclaim-v2{--bg:#fcf8ff;--text:#291637;--muted:#6e587e;--line:#ddd0e5;--purple-2:#7137ad;--v2-card:#f3edf8;--v2-soft:#e9ddf4;background:var(--bg)}
+html[data-theme=light] .reclaim-v2 .screen{background:var(--bg);color:var(--text)}
+html[data-theme=light] .reclaim-v2 .nav{background:#fcf8fff5;color:var(--text)}
+html[data-theme=light] .reclaim-v2 :is(.card,.record-card,.path-card,.achievement-card,.library-hero,.feed-post){background:var(--v2-card);border-color:var(--line)}
+html[data-theme=light] .reclaim-v2 .tool-card{background:#100a1d;color:#fff;border-color:#785390}
+html[data-theme=light] .reclaim-v2 .v2-heading h1{color:#fff}
+html[data-theme=light] body:has(.reclaim-v2) .modal-body{background:#fcf8ff;color:#291637;border-color:#d4c0e3}
+html[data-theme=light] body:has(.reclaim-v2) .modal-body .field{background:#f3edf8;color:#291637;border-color:#9b81ad}
+html[data-theme=light] body:has(.reclaim-v2) .modal-body .muted{color:#6e587e}
+html[data-theme=light] body:has(.reclaim-v2) .modal-body .secondary{color:#7137ad}
+@media(max-width:360px){.reclaim-v2 .screen .v2-heading>h1{font-size:36px}.reclaim-v2 .v2-heading{padding:22px 14px;min-height:174px}.reclaim-v2 .tool-card header strong{font-size:24px}.reclaim-v2 .topbar .brand{font-size:20px}.reclaim-v2 .nav small{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.reclaim-v2 .screen{animation:none}.reclaim-v2 button{transition:none}}

@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reclaim v2 local preview</title><style>body{background:#100a1d;color:#f8f3ff;font:16px/1.6 system-ui;max-width:520px;margin:10vh auto;padding:24px}h1{font:44px Georgia}button{display:block;background:#8145ff;color:white;border:1px solid #aa80dc;border-radius:28px;padding:16px;width:100%;margin:12px 0;font:inherit}p{color:#c8b5d9}</style><h1>Explore Reclaim v2.</h1><p>Local demo with sample data. Choose a journey, then use the app normally. Return here to switch journeys or restore this browser’s previous local data. Real account sign-in is not part of this static preview.</p><button data-mode="quit">Explore Quit</button><button data-mode="reduce">Explore Reduce</button><button data-mode="track">Explore Track</button><button id="restore">Restore previous local data</button><p id="status"></p><script>
+const local=['localhost','127.0.0.1','::1'].includes(location.hostname),backupKey='reclaim-preview-backup';
+function reset(){const backup=localStorage.getItem(backupKey)||JSON.stringify({...localStorage});localStorage.clear();localStorage.setItem(backupKey,backup)}
+for(const button of document.querySelectorAll('[data-mode]'))button.onclick=()=>{
+ if(!local)return;reset();const mode=button.dataset.mode;
+ localStorage.setItem('reclaim-state-v2',JSON.stringify({stage:'app',view:'home',profile:{journeyMode:mode,cigarettesPerDay:20,quitAt:new Date(Date.now()-3*864e5).toISOString(),pricePerPack:300,cigarettesPerPack:20,country:'IN'},smokingEvents:[]}));location.href='../index.html';
+};
+document.querySelector('#restore').onclick=()=>{if(!local)return;const backup=localStorage.getItem(backupKey);if(backup){const entries=JSON.parse(backup);localStorage.clear();for(const [key,value]of Object.entries(entries))localStorage.setItem(key,value)}document.querySelector('#status').textContent='Previous local data restored.'};
+if(!local){document.querySelectorAll('button').forEach(b=>b.disabled=true);document.querySelector('#status').textContent='This demo is available only on a local development server.'}
+</script></html>

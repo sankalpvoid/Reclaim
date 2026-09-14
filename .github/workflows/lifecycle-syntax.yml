@@ -37,6 +37,8 @@ jobs:
           node-version: '22'
       - name: Check foundation JavaScript syntax
         run: |
+          node --check v2-presentation.js
+          node --check tests/app-v2.e2e.mjs
           node --check today-screen.js
           node --check tests/today-screen.test.mjs
           node --check tests/today-screen.e2e.mjs
@@ -64,7 +66,7 @@ jobs:
           node --check tests/responsive.e2e.mjs
           node --check tests/startup-refresh.e2e.mjs
       - name: Run foundation regression tests
-        run: node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs tests/reduction-cloud.test.mjs tests/theme-regression.mjs tests/personalization-regression.mjs tests/today-screen.test.mjs
+        run: node --test tests/foundation-regression.mjs tests/smoking-journey.test.mjs tests/reduction-cloud.test.mjs tests/theme-regression.mjs tests/personalization-regression.mjs tests/today-screen.test.mjs tests/v2-presentation.test.mjs
 
   browser-e2e:
     needs: foundation
@@ -104,3 +106,4 @@ jobs:
           node tests/responsive.e2e.mjs
           node tests/startup-refresh.e2e.mjs
           node tests/today-screen.e2e.mjs
+          node tests/app-v2.e2e.mjs
