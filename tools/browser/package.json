@@ -1,0 +1,17 @@
+{
+  "name": "reclaim-browser-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Development-only browser automation tools for Reclaim.",
+  "scripts": {
+    "browser:install": "agent-browser install",
+    "browser:doctor": "agent-browser doctor",
+    "browser:open": "agent-browser open http://localhost:4173",
+    "browser:snapshot": "agent-browser snapshot -i",
+    "browser:screenshot": "agent-browser screenshot --full",
+    "browser:close": "agent-browser close"
+  },
+  "devDependencies": {
+    "agent-browser": "0.36.0"
+  }
+}
