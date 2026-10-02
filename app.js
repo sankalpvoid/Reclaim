@@ -24,15 +24,11 @@ const smokingJourney=createSmokingJourney({getState:()=>state,getSession:()=>ses
 const previousVisitAt=state.lastVisitAt||null;
 state.lastVisitAt=new Date().toISOString();
 save();
-const isOAuthReturn=new URLSearchParams(location.hash.slice(1)).has('access_token');
-if(!isOAuthReturn)state.stage='intro';
 function loadSession(){try{return JSON.parse(localStorage.getItem(SESSION)||'null')}catch{return null}}
 function saveSession(value){session=value;if(value)localStorage.setItem(SESSION,JSON.stringify(value));else localStorage.removeItem(SESSION)}
 function authHeaders(){const h={apikey:SUPABASE_KEY,'Content-Type':'application/json'};if(session?.access_token)h.Authorization=`Bearer ${session.access_token}`;return h}
 async function refreshSession(){if(!session?.refresh_token)throw new Error('Your session ended. Please sign in again.');const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});const data=await r.json();if(!r.ok||!data.access_token){saveSession(null);throw new Error('Your session ended. Please sign in again.')}saveSession({...session,...data});return data}
 async function api(path,options={}){const {_retried,...requestOptions}=options,r=await fetch(`${SUPABASE_URL}${path}`,{...requestOptions,headers:{...authHeaders(),...(requestOptions.headers||{})}});const body=await r.text();let data;try{data=body?JSON.parse(body):null}catch{data=body}if(!r.ok){const message=data?.msg||data?.message||data?.error_description||data?.hint||`Request failed (${r.status})`;if((r.status===401||r.status===403)&&!_retried&&session?.refresh_token&&/jwt|token|expired/i.test(message)){await refreshSession();return api(path,{...requestOptions,_retried:true})}throw new Error(message)}return data}
-function acceptOAuth(){const p=new URLSearchParams(location.hash.slice(1));if(p.get('access_token')){saveSession({access_token:p.get('access_token'),refresh_token:p.get('refresh_token'),user:null});history.replaceState({},'',location.pathname);state.stage='setup';save()}}
-acceptOAuth();
 function load(){try{const stored=JSON.parse(localStorage.getItem(STORAGE)||'{}'),loaded={...seed,...stored};delete loaded.celebration;delete loaded.celebratedMilestones;loaded.profile={...seed.profile,...(loaded.profile||{})};loaded.smokingEvents=loaded.smokingEvents||[];loaded.posts=(loaded.posts||[]).map((post,index)=>({...post,topic:post.topic||'win',circleId:post.circleId||circleForDays(+post.days||0).id,createdAt:post.createdAt||new Date(Date.now()-(index+2)*36e5).toISOString(),cheered:!!post.cheered}));loaded.replies=loaded.replies||[];loaded.savedPostIds=loaded.savedPostIds||[];loaded.blockedUsers=loaded.blockedUsers||[];loaded.reportedTargets=loaded.reportedTargets||[];loaded.communityReports=loaded.communityReports||[];loaded.challengeCompletions=loaded.challengeCompletions||[];return loaded}catch{return structuredClone(seed)}}
 function save(){if(state.stage!=='setup'&&state.stage!=='path')ensurePlan(state);localStorage.setItem(STORAGE,JSON.stringify(state))}
 function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
@@ -630,10 +626,7 @@ async function finishCraving(resisted,tool=null){const craving={at:new Date().to
 function openGoal(){modal(`<h2>ADD A DREAM</h2><form id="goal-form" class="stack"><label>What are you saving for?<input class="field" name="name" required placeholder="Weekend away"></label><label>Target amount<input class="field" name="target" type="number" min="1" required></label><button class="primary">CREATE GOAL</button></form>`);$('#goal-form').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));let id=crypto.randomUUID();if(session?.user)try{const rows=await api('/rest/v1/savings_goals',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({user_id:session.user.id,name:d.name,target_amount:+d.target,current_amount:0})});id=rows[0]?.id||id}catch(err){toast(err.message);return}state.goals.push({id,name:d.name,target:+d.target});save();closeModal();render()}}
 function confirmDeleteGoal(id){const goal=state.goals.find(g=>String(g.id)===String(id));if(!goal)return;modal(`<div class="delete-confirm"><div class="eyebrow">Savings goal</div><h2>DELETE “${esc(goal.name)}”?</h2><p class="muted">This removes the goal from your account. Your smoke-free savings calculation will not change.</p><div class="confirm-actions"><button class="secondary" data-cancel-delete>KEEP GOAL</button><button class="danger" data-confirm-delete>DELETE GOAL</button></div></div>`);$('[data-cancel-delete]').onclick=closeModal;$('[data-confirm-delete]').onclick=async e=>{const button=e.currentTarget;button.disabled=true;button.textContent='DELETING…';if(session?.user)try{await api(`/rest/v1/savings_goals?id=eq.${encodeURIComponent(id)}&user_id=eq.${session.user.id}`,{method:'DELETE',headers:{Prefer:'return=minimal'}})}catch(error){button.disabled=false;button.textContent='DELETE GOAL';toast(error.message);return}state.goals=state.goals.filter(g=>String(g.id)!==String(id));save();closeModal();render();toast('Goal deleted.')}}
 function toast(text){document.body.insertAdjacentHTML('beforeend',`<div class="toast">${esc(text)}</div>`);setTimeout(()=>$('.toast')?.remove(),2500)}
-if(isOAuthReturn)hydrate().finally(()=>{render();void smokingJourney.sync()});
-else {
-  render();
-  void smokingJourney.sync();
-  if(session?.user)hydrateCommunity().then(()=>{save();if(state.stage==='app'&&state.view==='circles')render()});
-}
+render();
+void smokingJourney.sync();
+if(session?.user)hydrateCommunity().then(()=>{save();if(state.stage==='app'&&state.view==='circles')render()});
 
