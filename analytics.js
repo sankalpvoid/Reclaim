@@ -44,6 +44,11 @@ const ERROR_PROPERTY_KEYS = new Set([
 const debug = new URLSearchParams(location.search).has('analytics-debug');
 const disabled = new URLSearchParams(location.search).has('analytics-disabled');
 const local = ['localhost', '127.0.0.1'].includes(location.hostname);
+const OPT_OUT_KEY = 'reclaim-analytics-optout-v1';
+function optedOut() {
+  try { if (localStorage.getItem(OPT_OUT_KEY) === '1') return true; } catch {}
+  return navigator.doNotTrack === '1' || navigator.globalPrivacyControl === true;
+}
 
 function storedJson(key, storage = localStorage) {
   try { return JSON.parse(storage.getItem(key) || 'null'); } catch { return null; }
@@ -104,7 +109,7 @@ function safeProperties(properties = {}) {
 }
 
 function track(eventName, properties = {}, modeOverride = null) {
-  if (disabled || !EVENT_NAMES.has(eventName) || (local && !debug)) return;
+  if (disabled || optedOut() || !EVENT_NAMES.has(eventName) || (local && !debug)) return;
   const { token, userId } = authContext();
   const payload = {
     anonymous_id: anonymousId,
