@@ -21,18 +21,15 @@
       html,body{margin:0;min-height:100%;background:#050505;color:#fff}
       html[data-theme="light"],html[data-theme="light"] body{background:#f8f6fc;color:#18151d}
       #app{min-height:100dvh}
-      .intro-boot{position:relative;width:min(100%,430px);height:100dvh;min-height:100dvh;margin:0 auto;overflow:hidden;background:#07020f}
-      .intro-boot img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}
-      @media(min-width:700px){body{padding:20px;background:#050505}.intro-boot{height:calc(100dvh - 40px);min-height:calc(100dvh - 40px);border-radius:28px}}
+      @media(min-width:700px){body{padding:20px;background:#050505}}
     </style>
 
-    <link rel="preload" as="image" href="assets/begin-journey-reference.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,300,0,0" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=recovery-2" />
-    <link rel="stylesheet" href="elapsed.css?v=recovery-1" />
+    <link rel="stylesheet" href="elapsed.css?v=recovery-2" />
     <link rel="stylesheet" href="personalized-insights.css?v=recovery-1" />
     <link rel="stylesheet" href="name-personalization.css?v=recovery-1" />
     <link rel="stylesheet" href="value-refinements.css?v=ux-1" />
@@ -44,27 +41,16 @@
     <link rel="stylesheet" href="smoking-journey.css?v=1" />
     <link rel="stylesheet" href="today-screen.css?v=1" />
     <link rel="stylesheet" href="reclaim-v2.css?v=1" />
+    <link rel="stylesheet" href="landing.css?v=2" />
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="app"></div>
 
-    <script>
-      (()=>{
-        const STATE='reclaim-state-v2';
-        const app=document.getElementById('app');
-        let state={};
-        try{state=JSON.parse(localStorage.getItem(STATE)||'{}')||{}}catch{}
-        if((state.stage||'intro')==='intro'){
-          app.innerHTML='<div class="intro-boot" aria-hidden="true"><img src="assets/begin-journey-reference.png" alt="" fetchpriority="high" /></div>';
-        }
-      })();
-    </script>
 
-    <script src="intro-reference-v2.js?v=3"></script>
     <script type="module" src="auth-lifecycle.js?v=auth-lifecycle-3"></script>
     <script type="module" src="cloud-bootstrap.js?v=cloud-bootstrap-2"></script>
-    <script type="module" src="app.js?v=startup-state-fix-7"></script>
+    <script type="module" src="app.js?v=startup-state-fix-8"></script>
     <script type="module" src="welcome-back.js?v=welcome-back-3"></script>
     <script type="module" src="checkin-sync.js?v=session-lifecycle-5"></script>
     <script type="module" src="manual-checkin.js?v=manual-checkin-1"></script>

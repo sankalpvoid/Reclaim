@@ -56,73 +56,6 @@
 }
 .cinematic { background: radial-gradient(circle at 50% 42%, #6c3cff16, transparent 44%); }
 
-/* The opening screen uses the selected artwork itself, cropped to the app-owned
-   phone content so the generated device bezel never appears inside Reclaim. */
-.intro-reference {
-  position: relative;
-  min-height: 100dvh;
-  height: 100dvh;
-  padding: 0;
-  overflow: hidden;
-  isolation: isolate;
-  background: #010106;
-}
-.intro-reference-crop {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #010106;
-}
-.intro-reference-crop:after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  box-shadow: inset 0 0 40px #0008;
-}
-.intro-reference-crop img {
-  position: absolute;
-  left: -16.3%;
-  top: -10.9%;
-  width: 133.6%;
-  height: 122.8%;
-  max-width: none;
-  object-fit: fill;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-.intro-reference-cta {
-  position: absolute;
-  z-index: 2;
-  left: 7%;
-  right: 7%;
-  bottom: 4.05%;
-  height: 6.7%;
-  min-height: 54px;
-  border: 0;
-  border-radius: 18px;
-  color: transparent;
-  background: transparent;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.intro-reference-cta span {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-.intro-reference-cta:focus-visible {
-  outline: 3px solid #fff;
-  outline-offset: 5px;
-}
-.intro-reference-cta:active {
-  background: #ffffff12;
-  transform: scale(.985);
-}
 .hero-runner:after { display: none; }
 .runner-art { position: absolute; right: -9px; top: 30px; width: 172px; color: #fff; opacity: .2; filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #6c3cff); transform: rotate(-4deg); }
 .hero-runner > *:not(.runner-art) { position: relative; z-index: 2; }
@@ -1137,6 +1070,5 @@
 .setback-modal > p { margin-bottom: 18px; font-size: 10px; line-height: 1.55; }
 
 @media (min-width:700px) {
-  .intro-reference { min-height: calc(100dvh - 40px); height: calc(100dvh - 40px); }
   .fab { bottom: 108px; }
 }
