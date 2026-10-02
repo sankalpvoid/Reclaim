@@ -1,9 +1,10 @@
 import { sectionHeading, toolArtwork } from './v2-presentation.js';
 import { todayHero, todayNextStep } from './today-screen.js';
-import './cloud-bootstrap.js?v=cloud-bootstrap-1';
+import './cloud-bootstrap.js?v=cloud-bootstrap-2';
 import { ensurePlan, journeyCards, dayKey, shiftDay, switchJourney } from './smoking-journey.js';
 import { createSmokingJourney } from './smoking-journey-ui.js';
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
+import { refreshStoredSession, readStoredSession } from './session-refresh.js';
 const $ = (s, root=document) => root.querySelector(s);
 const STORAGE='reclaim-state-v2', SESSION='reclaim-session-v1', THEME_STORAGE='reclaim-theme-v1';
 let theme=localStorage.getItem(THEME_STORAGE)==='light'?'light':'dark';
@@ -27,7 +28,7 @@ save();
 function loadSession(){try{return JSON.parse(localStorage.getItem(SESSION)||'null')}catch{return null}}
 function saveSession(value){session=value;if(value)localStorage.setItem(SESSION,JSON.stringify(value));else localStorage.removeItem(SESSION)}
 function authHeaders(){const h={apikey:SUPABASE_KEY,'Content-Type':'application/json'};if(session?.access_token)h.Authorization=`Bearer ${session.access_token}`;return h}
-async function refreshSession(){if(!session?.refresh_token)throw new Error('Your session ended. Please sign in again.');const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});const data=await r.json();if(!r.ok||!data.access_token){saveSession(null);throw new Error('Your session ended. Please sign in again.')}saveSession({...session,...data});return data}
+async function refreshSession(){try{session=await refreshStoredSession(session?.refresh_token);return session}catch(error){if(!readStoredSession())session=null;throw error}}
 async function api(path,options={}){const {_retried,...requestOptions}=options,r=await fetch(`${SUPABASE_URL}${path}`,{...requestOptions,headers:{...authHeaders(),...(requestOptions.headers||{})}});const body=await r.text();let data;try{data=body?JSON.parse(body):null}catch{data=body}if(!r.ok){const message=data?.msg||data?.message||data?.error_description||data?.hint||`Request failed (${r.status})`;if((r.status===401||r.status===403)&&!_retried&&session?.refresh_token&&/jwt|token|expired/i.test(message)){await refreshSession();return api(path,{...requestOptions,_retried:true})}throw new Error(message)}return data}
 function load(){try{const stored=JSON.parse(localStorage.getItem(STORAGE)||'{}'),loaded={...seed,...stored};delete loaded.celebration;delete loaded.celebratedMilestones;loaded.profile={...seed.profile,...(loaded.profile||{})};loaded.smokingEvents=loaded.smokingEvents||[];loaded.posts=(loaded.posts||[]).map((post,index)=>({...post,topic:post.topic||'win',circleId:post.circleId||circleForDays(+post.days||0).id,createdAt:post.createdAt||new Date(Date.now()-(index+2)*36e5).toISOString(),cheered:!!post.cheered}));loaded.replies=loaded.replies||[];loaded.savedPostIds=loaded.savedPostIds||[];loaded.blockedUsers=loaded.blockedUsers||[];loaded.reportedTargets=loaded.reportedTargets||[];loaded.communityReports=loaded.communityReports||[];loaded.challengeCompletions=loaded.challengeCompletions||[];return loaded}catch{return structuredClone(seed)}}
 function save(){if(state.stage!=='setup'&&state.stage!=='path')ensurePlan(state);localStorage.setItem(STORAGE,JSON.stringify(state))}

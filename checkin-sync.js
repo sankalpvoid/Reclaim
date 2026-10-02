@@ -1,4 +1,5 @@
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
+import { refreshStoredSession } from './session-refresh.js';
 
 // Durable mood/check-in synchronization only.
 // Startup, login, reload and Welcome Back routing are owned by auth-lifecycle.js.
@@ -85,18 +86,9 @@ Storage.prototype.setItem=function(key,value){
 };
 
 async function refreshAuthSession(){
-  const session=readJson(SESSION_KEY)||{};
-  if(!session.refresh_token)throw new Error('No refresh token');
-  const response=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-    method:'POST',
-    headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({refresh_token:session.refresh_token})
-  });
-  const text=await response.text();
-  let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
-  if(!response.ok||!data?.access_token)throw new Error(data?.message||data?.error_description||'Session refresh failed');
-  nativeSetItem.call(localStorage,SESSION_KEY,JSON.stringify({...session,...data,user:data.user||session.user}));
-  return data.access_token;
+  const stale=readJson(SESSION_KEY)||{};
+  const next=await refreshStoredSession(stale.refresh_token);
+  return next.access_token;
 }
 async function request(path,options={},retried=false){
   const {token}=authContext();

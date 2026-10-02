@@ -1,4 +1,5 @@
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
+import { refreshStoredSession } from './session-refresh.js';
 
 // Single owner for Reclaim's startup/auth routing decisions.
 // app.js may still render the legacy intro as a compatibility path, while this
@@ -67,15 +68,7 @@ async function parseResponse(response){
 async function authedGet(path,token){
   return parseResponse(await fetch(`${SUPABASE_URL}${path}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${token}`,'Content-Type':'application/json'}}));
 }
-async function refreshSession(session){
-  if(!session?.refresh_token)throw new Error('Your session ended. Please sign in again.');
-  const data=await parseResponse(await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
-    method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})
-  }));
-  const next={...session,...data,user:data.user||session.user};
-  writeJson(SESSION_KEY,next);
-  return next;
-}
+function refreshSession(session){return refreshStoredSession(session?.refresh_token)}
 async function lifecycleData(session){
   let active=session;
   let {token,userId}=authContext(active);

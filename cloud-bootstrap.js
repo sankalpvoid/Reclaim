@@ -1,6 +1,7 @@
 import { overlaySmokingMutations } from './smoking-journey.js';
 import { emptyReductionSync, normalizeReductionSync, mergeCloudReductionPlan, mergeCloudConfirmations } from './reduction-cloud.js';
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
+import { refreshStoredSession } from './session-refresh.js';
 import { fromDatabaseRows, normalizeBehaviorEvents, deriveSmokingEvents, deriveCravings } from './behavior-model.js';
 import './behavior-events.js';
 
@@ -18,9 +19,7 @@ async function request(path,{retry=true}={}){
   if(response.ok)return data;
   const message=data?.msg||data?.message||data?.error_description||`Request failed (${response.status})`;
   if(retry&&(response.status===401||response.status===403)&&session?.refresh_token){
-    const refreshed=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});
-    const refreshText=await refreshed.text();let refreshData;try{refreshData=refreshText?JSON.parse(refreshText):null}catch{refreshData=null}
-    if(refreshed.ok&&refreshData?.access_token){session={...session,...refreshData};writeJson(SESSION_KEY,session);return request(path,{retry:false})}
+    try{session=await refreshStoredSession(session.refresh_token);return request(path,{retry:false})}catch{}
   }
   throw new Error(message);
 }
